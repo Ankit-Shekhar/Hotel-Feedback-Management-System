@@ -1,0 +1,49 @@
+<svg width="1920" height="1280" viewBox="0 0 1920 1280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Luxury palace hotel hall">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="42%" r="62%">
+      <stop offset="0%" stop-color="#D4AF37" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#0B0B0B" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="archGold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#E6C97A" stop-opacity="0.72"/>
+      <stop offset="100%" stop-color="#D4AF37" stop-opacity="0.3"/>
+    </linearGradient>
+    <linearGradient id="floorLines" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#D4AF37" stop-opacity="0.08"/>
+      <stop offset="50%" stop-color="#E6C97A" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#D4AF37" stop-opacity="0.08"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="1920" height="1280" fill="none"/>
+  <circle cx="960" cy="520" r="560" fill="url(#bgGlow)"/>
+
+  <!-- Palace arch frame -->
+  <path d="M340 1050 L340 420 Q340 200 560 200 L1360 200 Q1580 200 1580 420 L1580 1050" fill="none" stroke="url(#archGold)" stroke-width="3"/>
+  <path d="M430 1050 L430 470 Q430 290 610 290 L1310 290 Q1490 290 1490 470 L1490 1050" fill="none" stroke="url(#archGold)" stroke-width="2.2"/>
+
+  <!-- Grand central window -->
+  <path d="M760 1000 L760 460 Q760 350 870 350 L1050 350 Q1160 350 1160 460 L1160 1000" fill="none" stroke="url(#archGold)" stroke-width="2.4"/>
+  <line x1="960" y1="350" x2="960" y2="1000" stroke="url(#archGold)" stroke-width="1.5"/>
+  <line x1="760" y1="670" x2="1160" y2="670" stroke="url(#archGold)" stroke-width="1.5"/>
+
+  <!-- Side arches -->
+  <path d="M520 1000 L520 560 Q520 470 610 470 L690 470 Q780 470 780 560 L780 1000" fill="none" stroke="url(#archGold)" stroke-width="1.8"/>
+  <path d="M1140 1000 L1140 560 Q1140 470 1230 470 L1310 470 Q1400 470 1400 560 L1400 1000" fill="none" stroke="url(#archGold)" stroke-width="1.8"/>
+
+  <!-- Chandelier -->
+  <line x1="960" y1="120" x2="960" y2="270" stroke="url(#archGold)" stroke-width="1.6"/>
+  <ellipse cx="960" cy="310" rx="210" ry="60" fill="none" stroke="url(#archGold)" stroke-width="2"/>
+  <ellipse cx="960" cy="310" rx="150" ry="43" fill="none" stroke="url(#archGold)" stroke-width="1.5"/>
+  <ellipse cx="960" cy="310" rx="95" ry="28" fill="none" stroke="url(#archGold)" stroke-width="1.2"/>
+
+  <!-- Lounge silhouettes -->
+  <path d="M420 980 Q560 860 700 980 L700 1080 L420 1080 Z" fill="none" stroke="url(#archGold)" stroke-width="1.8"/>
+  <path d="M1220 980 Q1360 860 1500 980 L1500 1080 L1220 1080 Z" fill="none" stroke="url(#archGold)" stroke-width="1.8"/>
+  <path d="M820 1045 Q960 930 1100 1045" fill="none" stroke="url(#archGold)" stroke-width="1.8"/>
+
+  <!-- Reflective floor lines -->
+  <path d="M190 1140 L960 720 L1730 1140" fill="none" stroke="url(#floorLines)" stroke-width="2.4"/>
+  <path d="M280 1185 L960 760 L1640 1185" fill="none" stroke="url(#floorLines)" stroke-width="2"/>
+  <path d="M370 1230 L960 800 L1550 1230" fill="none" stroke="url(#floorLines)" stroke-width="1.6"/>
+</svg>

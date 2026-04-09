@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Card, InputField, LuxuryButton } from '../../components/ui'
 import Container from '../../components/layout/Container'
+import { useToast } from '../../context/useToast'
 import { loginAdmin } from '../../services'
 import { useAuth } from '../../context/useAuth'
 import { fadeInUp } from '../../utils/motion'
@@ -10,6 +11,7 @@ import { fadeInUp } from '../../utils/motion'
 function AdminLogin() {
   const navigate = useNavigate()
   const { login } = useAuth()
+  const { showToast } = useToast()
   const [form, setForm] = useState({ username: '', password: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -28,9 +30,12 @@ function AdminLogin() {
       }
 
       login(token)
+      showToast({ title: 'Welcome back', message: 'Admin login successful.', variant: 'success' })
       navigate('/dashboard', { replace: true })
     } catch (err) {
-      setError(err?.response?.data?.message || err.message || 'Unable to sign in.')
+      const message = err?.response?.data?.message || err.message || 'Unable to sign in.'
+      setError(message)
+      showToast({ title: 'Login failed', message, variant: 'error' })
     } finally {
       setLoading(false)
     }

@@ -7,15 +7,18 @@ import '@fontsource/inter/600.css'
 import '@fontsource/playfair-display/600.css'
 import '@fontsource/playfair-display/700.css'
 import { AuthProvider } from './context/AuthProvider'
+import { ToastProvider } from './context/ToastProvider'
 import './index.css'
 import App from './App.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </ToastProvider>
     </BrowserRouter>
   </StrictMode>,
 )

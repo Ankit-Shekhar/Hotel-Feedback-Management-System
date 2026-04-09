@@ -2,15 +2,16 @@ import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Card, InputField, LuxuryButton, RatingStars, TextareaField } from '../../components/ui'
 import Container from '../../components/layout/Container'
+import { useToast } from '../../context/useToast'
 import { getHotels, submitFeedback } from '../../services'
 import { fadeInUp, hoverLift } from '../../utils/motion'
 
 function FeedbackPage() {
+  const { showToast } = useToast()
   const [hotels, setHotels] = useState([])
   const [loadingHotels, setLoadingHotels] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
   const [form, setForm] = useState({
     hotelId: '',
     userName: '',
@@ -39,7 +40,9 @@ function FeedbackPage() {
         }
       } catch (err) {
         if (active) {
-          setError(err?.response?.data?.message || 'Unable to load hotels for feedback.')
+          const message = err?.response?.data?.message || 'Unable to load hotels for feedback.'
+          setError(message)
+          showToast({ title: 'Feedback setup failed', message, variant: 'error' })
         }
       } finally {
         if (active) {
@@ -53,9 +56,17 @@ function FeedbackPage() {
     return () => {
       active = false
     }
-  }, [])
+  }, [showToast])
 
   const hotelOptions = useMemo(() => hotels, [hotels])
+  const ratingsComplete = Object.values(form.ratings).every((value) => value >= 1 && value <= 5)
+  const canSubmit = Boolean(
+    form.hotelId &&
+      form.userName.trim() &&
+      form.contact.trim() &&
+      form.suggestion.trim() &&
+      ratingsComplete,
+  )
 
   const updateRating = (field, value) => {
     setForm((current) => ({
@@ -78,9 +89,16 @@ function FeedbackPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
+
+    if (!ratingsComplete) {
+      const message = 'Please provide ratings from 1 to 5 for all four categories before submitting.'
+      setError(message)
+      showToast({ title: 'Validation error', message, variant: 'error' })
+      return
+    }
+
     setLoading(true)
     setError('')
-    setSuccess('')
 
     try {
       await submitFeedback({
@@ -91,7 +109,11 @@ function FeedbackPage() {
         suggestion: form.suggestion,
       })
 
-      setSuccess('Feedback submitted successfully. If you submit again within 30 days, your latest entry is updated.')
+      showToast({
+        title: 'Feedback submitted',
+        message: 'Submitted successfully. If you submit again within 30 days, your latest entry is updated.',
+        variant: 'success',
+      })
       setForm((current) => ({
         ...current,
         userName: '',
@@ -105,7 +127,9 @@ function FeedbackPage() {
         },
       }))
     } catch (err) {
-      setError(err?.response?.data?.message || 'Unable to submit feedback at the moment.')
+      const message = err?.response?.data?.message || 'Unable to submit feedback at the moment.'
+      setError(message)
+      showToast({ title: 'Submission failed', message, variant: 'error' })
     } finally {
       setLoading(false)
     }
@@ -139,7 +163,6 @@ function FeedbackPage() {
               {loadingHotels ? 'Loading hotel options...' : `${hotelOptions.length} hotel(s) available for feedback.`}
             </Card>
 
-            {success ? <Card className="border-gold/20 bg-gold/10 p-4 text-sm text-ivory">{success}</Card> : null}
             {error ? <Card className="border-red-400/20 bg-red-500/10 p-4 text-sm text-red-100">{error}</Card> : null}
           </motion.aside>
 
@@ -208,8 +231,10 @@ function FeedbackPage() {
             />
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-ivory/55">{form.suggestion.length}/500 characters</p>
-              <LuxuryButton type="submit" disabled={loading}>
+              <p className="text-sm text-ivory/55">
+                {form.suggestion.length}/500 characters {!ratingsComplete ? '· complete all ratings' : ''}
+              </p>
+              <LuxuryButton type="submit" disabled={loading || !canSubmit}>
                 {loading ? 'Submitting...' : 'Submit Feedback'}
               </LuxuryButton>
             </div>

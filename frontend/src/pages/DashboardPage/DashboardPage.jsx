@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import { Card } from '../../components/ui'
-import { DashboardChart, Loader } from '../../components/common'
+import { DashboardChart, SkeletonBlock } from '../../components/common'
 import { Sidebar, Container } from '../../components/layout'
+import { useToast } from '../../context/useToast'
 import { getDashboardStats, getRecentFeedbacks } from '../../services'
 import { fadeInUp, hoverLift } from '../../utils/motion'
 
 function DashboardPage() {
+  const { showToast } = useToast()
   const [stats, setStats] = useState(null)
   const [recentFeedbacks, setRecentFeedbacks] = useState([])
   const [loading, setLoading] = useState(true)
@@ -16,6 +19,8 @@ function DashboardPage() {
     let active = true
 
     const loadDashboard = async () => {
+      const loadStart = Date.now()
+
       try {
         setLoading(true)
         setError('')
@@ -31,9 +36,19 @@ function DashboardPage() {
         }
       } catch (err) {
         if (active) {
-          setError(err?.response?.data?.message || 'Unable to load dashboard data.')
+          const message = err?.response?.data?.message || 'Unable to load dashboard data.'
+          setError(message)
+          showToast({ title: 'Dashboard load failed', message, variant: 'error' })
         }
       } finally {
+        const elapsed = Date.now() - loadStart
+        const minimumLoaderMs = 700
+        if (elapsed < minimumLoaderMs) {
+          await new Promise((resolve) => {
+            window.setTimeout(resolve, minimumLoaderMs - elapsed)
+          })
+        }
+
         if (active) {
           setLoading(false)
         }
@@ -45,7 +60,7 @@ function DashboardPage() {
     return () => {
       active = false
     }
-  }, [])
+  }, [showToast])
 
   const chartData = useMemo(() => {
     if (!stats?.averageRatings) {
@@ -76,7 +91,26 @@ function DashboardPage() {
           </motion.section>
 
           {loading ? (
-            <Loader />
+            <div className="space-y-8" aria-label="Loading dashboard content">
+              <section className="grid gap-4 md:grid-cols-3">
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <Card key={`dash-stat-skeleton-${index}`} className="space-y-3 p-5">
+                    <SkeletonBlock className="h-4 w-2/5" />
+                    <SkeletonBlock className="h-10 w-1/2" />
+                  </Card>
+                ))}
+              </section>
+              <Card className="space-y-4 p-5">
+                <SkeletonBlock className="h-6 w-1/3" />
+                <SkeletonBlock className="h-64 w-full" />
+              </Card>
+              <Card className="space-y-4 p-5">
+                <SkeletonBlock className="h-6 w-1/3" />
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <SkeletonBlock key={`recent-skeleton-${index}`} className="h-20 w-full" />
+                ))}
+              </Card>
+            </div>
           ) : error ? (
             <Card className="border-red-400/20 bg-red-500/10 p-4 text-red-100">{error}</Card>
           ) : (
@@ -106,7 +140,20 @@ function DashboardPage() {
 
                 <div className="grid gap-4">
                   {recentFeedbacks.length === 0 ? (
-                    <Card className="p-5 text-ivory/70">No recent feedback available.</Card>
+                    <Card className="space-y-4 p-6 text-center">
+                      <p className="text-xl font-semibold text-ivory">No recent feedback yet.</p>
+                      <p className="text-sm leading-7 text-ivory/65">
+                        Once guests submit reviews, the latest entries will appear here with category ratings.
+                      </p>
+                      <div>
+                        <Link
+                          to="/feedback"
+                          className="inline-flex rounded-full border border-gold/40 px-4 py-2 text-sm font-semibold text-gold transition hover:bg-gold hover:text-primary"
+                        >
+                          Open Feedback Form
+                        </Link>
+                      </div>
+                    </Card>
                   ) : (
                     recentFeedbacks.map((feedback) => (
                       <Card key={feedback._id} className="border-white/10 p-5">

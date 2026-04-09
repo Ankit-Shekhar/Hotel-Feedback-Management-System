@@ -12,7 +12,14 @@ function RatingStars({
   const selectedValue = value ?? rating
 
   return (
-    <div className={`flex items-center gap-1 ${className}`} aria-label={`Rating: ${selectedValue} out of ${max}`}>
+    <div
+      className={`flex items-center gap-1 ${className}`}
+      role="radiogroup"
+      aria-label={`Rating: ${selectedValue} out of ${max}`}
+      aria-valuemin={1}
+      aria-valuemax={max}
+      aria-valuenow={selectedValue}
+    >
       {Array.from({ length: max }, (_, index) => {
         const starValue = index + 1
         const activeValue = hoverValue || selectedValue
@@ -30,6 +37,8 @@ function RatingStars({
               active ? 'text-gold drop-shadow-[0_0_8px_rgba(212,175,55,0.35)]' : 'text-white/20'
             }`}
             aria-label={`Set rating to ${starValue}`}
+            aria-checked={starValue === selectedValue}
+            role="radio"
           >
             ★
           </button>
