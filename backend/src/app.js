@@ -7,7 +7,7 @@ const app = express();
 
 // app.use -> .use is used to deal with Middlewares and Configurations.
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || "http://localhost:8000",
+    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
     credentials: true
 }));
 

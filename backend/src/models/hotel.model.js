@@ -21,6 +21,14 @@ const hotelSchema = new Schema(
 			trim: true,
 			index: true
 		},
+		photoUrl: {
+			type: String,
+			default: ''
+		},
+		photoPublicId: {
+			type: String,
+			default: ''
+		},
 		ratingsSummary: {
 			overall: {
 				type: Number,

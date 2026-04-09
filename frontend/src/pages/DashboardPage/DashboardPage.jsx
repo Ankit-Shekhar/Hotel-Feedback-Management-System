@@ -1,19 +1,28 @@
 import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { Card } from '../../components/ui'
+import { Card, InputField, LuxuryButton } from '../../components/ui'
 import { DashboardChart, SkeletonBlock } from '../../components/common'
 import { Sidebar, Container } from '../../components/layout'
 import { useToast } from '../../context/useToast'
-import { getDashboardStats, getRecentFeedbacks } from '../../services'
+import { addHotel, getDashboardStats, getHotels, getRecentFeedbacks } from '../../services'
 import { fadeInUp, hoverLift } from '../../utils/motion'
 
 function DashboardPage() {
   const { showToast } = useToast()
   const [stats, setStats] = useState(null)
   const [recentFeedbacks, setRecentFeedbacks] = useState([])
+  const [hotels, setHotels] = useState([])
   const [loading, setLoading] = useState(true)
+  const [addingHotel, setAddingHotel] = useState(false)
   const [error, setError] = useState('')
+  const [hotelForm, setHotelForm] = useState({
+    name: '',
+    city: '',
+    state: '',
+  })
+  const [hotelPhoto, setHotelPhoto] = useState(null)
+  const [hotelPhotoPreview, setHotelPhotoPreview] = useState('')
 
   useEffect(() => {
     let active = true
@@ -25,14 +34,16 @@ function DashboardPage() {
         setLoading(true)
         setError('')
 
-        const [statsResult, recentResult] = await Promise.all([
+        const [statsResult, recentResult, hotelsResult] = await Promise.all([
           getDashboardStats(),
           getRecentFeedbacks(10),
+          getHotels(),
         ])
 
         if (active) {
           setStats(statsResult)
           setRecentFeedbacks(recentResult)
+          setHotels(hotelsResult)
         }
       } catch (err) {
         if (active) {
@@ -62,6 +73,68 @@ function DashboardPage() {
     }
   }, [showToast])
 
+  useEffect(() => {
+    return () => {
+      if (hotelPhotoPreview) {
+        window.URL.revokeObjectURL(hotelPhotoPreview)
+      }
+    }
+  }, [hotelPhotoPreview])
+
+  const handleHotelPhotoChange = (event) => {
+    const file = event.target.files?.[0] || null
+
+    if (hotelPhotoPreview) {
+      window.URL.revokeObjectURL(hotelPhotoPreview)
+    }
+
+    setHotelPhoto(file)
+    setHotelPhotoPreview(file ? window.URL.createObjectURL(file) : '')
+  }
+
+  const handleHotelSubmit = async (event) => {
+    event.preventDefault()
+
+    if (!hotelPhoto) {
+      showToast({ title: 'Photo required', message: 'Please choose a hotel photo.', variant: 'error' })
+      return
+    }
+
+    setAddingHotel(true)
+
+    try {
+      const payload = new FormData()
+      payload.append('name', hotelForm.name)
+      payload.append('city', hotelForm.city)
+      payload.append('state', hotelForm.state)
+      payload.append('photo', hotelPhoto)
+
+      await addHotel(payload)
+
+      showToast({
+        title: 'Hotel added',
+        message: 'The hotel is now available on the homepage list.',
+        variant: 'success',
+      })
+
+      setHotelForm({ name: '', city: '', state: '' })
+      setHotelPhoto(null)
+
+      if (hotelPhotoPreview) {
+        window.URL.revokeObjectURL(hotelPhotoPreview)
+      }
+      setHotelPhotoPreview('')
+
+      const refreshedHotels = await getHotels()
+      setHotels(refreshedHotels)
+    } catch (err) {
+      const message = err?.response?.data?.message || 'Unable to add hotel.'
+      showToast({ title: 'Add hotel failed', message, variant: 'error' })
+    } finally {
+      setAddingHotel(false)
+    }
+  }
+
   const chartData = useMemo(() => {
     if (!stats?.averageRatings) {
       return []
@@ -80,6 +153,86 @@ function DashboardPage() {
       <div className="flex flex-col md:flex-row">
         <Sidebar />
         <Container className="flex-1 py-8">
+          <motion.section {...fadeInUp} className="mb-8 grid gap-6 rounded-[2rem] border border-gold/15 bg-secondary/90 p-6 lg:grid-cols-[0.95fr_1.05fr]">
+            <div className="space-y-3">
+              <div className="inline-flex rounded-full border border-gold/25 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.35em] text-goldSoft">
+                Add hotel
+              </div>
+              <h2 className="text-3xl font-semibold text-ivory">Create a hotel with photo upload</h2>
+              <p className="max-w-xl text-sm leading-7 text-ivory/70">
+                Add a hotel from the admin panel with its name, city, state, and image. The homepage will pick it up from the API.
+              </p>
+              <div className="grid gap-4 sm:grid-cols-3">
+                {hotels.slice(0, 3).map((hotel) => (
+                  <Card key={hotel._id} className="overflow-hidden border-white/10 p-3">
+                    {hotel.photoUrl ? (
+                      <img src={hotel.photoUrl} alt={hotel.name} className="h-28 w-full rounded-2xl object-cover" />
+                    ) : (
+                      <div className="flex h-28 items-center justify-center rounded-2xl bg-[radial-gradient(circle_at_top,rgba(212,175,55,0.18),transparent_55%)] text-xs uppercase tracking-[0.25em] text-ivory/45">
+                        No photo
+                      </div>
+                    )}
+                    <p className="mt-3 text-sm font-semibold text-ivory">{hotel.name}</p>
+                    <p className="text-xs text-ivory/55">
+                      {hotel.city}, {hotel.state}
+                    </p>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            <form onSubmit={handleHotelSubmit} className="space-y-4 rounded-[1.5rem] border border-white/10 bg-primary/50 p-5">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <InputField
+                  label="Hotel name"
+                  value={hotelForm.name}
+                  onChange={(event) => setHotelForm((current) => ({ ...current, name: event.target.value }))}
+                  placeholder="e.g. The Grand Aurelia"
+                  required
+                />
+                <InputField
+                  label="City"
+                  value={hotelForm.city}
+                  onChange={(event) => setHotelForm((current) => ({ ...current, city: event.target.value }))}
+                  placeholder="e.g. Jaipur"
+                  required
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-[1fr_1.1fr]">
+                <InputField
+                  label="State"
+                  value={hotelForm.state}
+                  onChange={(event) => setHotelForm((current) => ({ ...current, state: event.target.value }))}
+                  placeholder="e.g. Rajasthan"
+                  required
+                />
+                <label className="block space-y-2">
+                  <span className="text-sm font-medium text-ivory/80">Hotel photo</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleHotelPhotoChange}
+                    className="w-full rounded-2xl border border-white/10 bg-secondary px-4 py-3 text-sm text-ivory file:mr-4 file:rounded-full file:border-0 file:bg-gold file:px-4 file:py-2 file:text-sm file:font-semibold file:text-primary"
+                    required
+                  />
+                </label>
+              </div>
+
+              {hotelPhotoPreview ? (
+                <div className="overflow-hidden rounded-2xl border border-white/10">
+                  <img src={hotelPhotoPreview} alt="Hotel preview" className="h-52 w-full object-cover" />
+                </div>
+              ) : null}
+
+              <div className="flex justify-end">
+                <LuxuryButton type="submit" disabled={addingHotel}>
+                  {addingHotel ? 'Adding hotel...' : 'Add hotel'}
+                </LuxuryButton>
+              </div>
+            </form>
+          </motion.section>
+
           <motion.section {...fadeInUp} className="mb-8 space-y-3">
             <div className="inline-flex rounded-full border border-gold/25 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.35em] text-goldSoft">
               Admin dashboard

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
+import { useSearchParams } from 'react-router-dom'
 import { Card, InputField, LuxuryButton, RatingStars, TextareaField } from '../../components/ui'
 import Container from '../../components/layout/Container'
 import { useToast } from '../../context/useToast'
@@ -7,6 +8,8 @@ import { getHotels, submitFeedback } from '../../services'
 import { fadeInUp, hoverLift } from '../../utils/motion'
 
 function FeedbackPage() {
+  const [searchParams] = useSearchParams()
+  const preselectedHotelId = searchParams.get('hotelId') || ''
   const { showToast } = useToast()
   const [hotels, setHotels] = useState([])
   const [loadingHotels, setLoadingHotels] = useState(true)
@@ -33,9 +36,10 @@ function FeedbackPage() {
         const result = await getHotels()
         if (active) {
           setHotels(result)
+          const hasPreselectedHotel = preselectedHotelId && result.some((hotel) => hotel._id === preselectedHotelId)
           setForm((current) => ({
             ...current,
-            hotelId: result?.[0]?._id || '',
+            hotelId: hasPreselectedHotel ? preselectedHotelId : result?.[0]?._id || '',
           }))
         }
       } catch (err) {
@@ -56,7 +60,7 @@ function FeedbackPage() {
     return () => {
       active = false
     }
-  }, [showToast])
+  }, [preselectedHotelId, showToast])
 
   const hotelOptions = useMemo(() => hotels, [hotels])
   const ratingsComplete = Object.values(form.ratings).every((value) => value >= 1 && value <= 5)

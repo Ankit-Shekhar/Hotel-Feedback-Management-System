@@ -5,6 +5,11 @@ export const getHotels = async (params = {}) => {
   return data?.data ?? []
 }
 
+export const addHotel = async (payload) => {
+  const { data } = await api.post('/hotels', payload)
+  return data?.data ?? null
+}
+
 export const getHotelById = async (hotelId) => {
   const { data } = await api.get(`/hotels/${hotelId}`)
   return data?.data ?? null

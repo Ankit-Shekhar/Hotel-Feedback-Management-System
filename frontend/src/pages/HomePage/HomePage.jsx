@@ -1,12 +1,24 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Card, HotelCard, InputField, LuxuryButton } from '../../components/ui'
+import { Card, HotelCard, InputField, LuxuryButton, RatingStars, TextareaField } from '../../components/ui'
 import { HotelCardSkeleton } from '../../components/common'
 import Container from '../../components/layout/Container'
 import { useToast } from '../../context/useToast'
-import { getHotels } from '../../services'
+import { getHotels, submitFeedback } from '../../services'
 import { fadeInUp, hoverLift } from '../../utils/motion'
+
+const createReviewForm = () => ({
+  userName: '',
+  contact: '',
+  suggestion: '',
+  ratings: {
+    overall: 0,
+    food: 0,
+    service: 0,
+    ambience: 0,
+  },
+})
 
 function HomePage() {
   const { showToast } = useToast()
@@ -14,6 +26,8 @@ function HomePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
+  const [reviewForm, setReviewForm] = useState(createReviewForm)
+  const [reviewLoading, setReviewLoading] = useState(false)
   const heroImage = '/background.jfif'
   const galleryImages = ['/below1.jfif', '/below2.jfif', '/below3.jfif']
   const galleryCaptions = ['Subtle', 'Spacious', 'Premium']
@@ -86,6 +100,88 @@ function HomePage() {
     })
   }, [hotels, search])
 
+  const topRatedHotels = useMemo(() => {
+    return [...hotels]
+      .sort((a, b) => (b?.ratingsSummary?.overall || 0) - (a?.ratingsSummary?.overall || 0))
+      .slice(0, 3)
+  }, [hotels])
+
+  const selectedHotel = useMemo(() => {
+    const query = search.trim().toLowerCase()
+
+    if (!query) {
+      return null
+    }
+
+    return (
+      hotels.find((hotel) => hotel?.name?.trim().toLowerCase() === query) ||
+      (filteredHotels.length === 1 ? filteredHotels[0] : null)
+    )
+  }, [filteredHotels, hotels, search])
+
+  useEffect(() => {
+    setReviewForm(createReviewForm())
+  }, [selectedHotel?._id])
+
+  const updateReviewField = (field, value) => {
+    setReviewForm((current) => ({
+      ...current,
+      [field]: value,
+    }))
+  }
+
+  const updateReviewRating = (field, value) => {
+    setReviewForm((current) => ({
+      ...current,
+      ratings: {
+        ...current.ratings,
+        [field]: value,
+      },
+    }))
+  }
+
+  const handleReviewSubmit = async (event) => {
+    event.preventDefault()
+
+    if (!selectedHotel) {
+      return
+    }
+
+    if (Object.values(reviewForm.ratings).some((value) => value < 1 || value > 5)) {
+      showToast({
+        title: 'Validation error',
+        message: 'Please select all four ratings from 1 to 5 before submitting.',
+        variant: 'error',
+      })
+      return
+    }
+
+    setReviewLoading(true)
+
+    try {
+      await submitFeedback({
+        hotelId: selectedHotel._id,
+        userName: reviewForm.userName,
+        contact: reviewForm.contact,
+        suggestion: reviewForm.suggestion,
+        ratings: reviewForm.ratings,
+      })
+
+      showToast({
+        title: 'Feedback submitted',
+        message: 'Your review has been saved for this hotel.',
+        variant: 'success',
+      })
+
+      setReviewForm(createReviewForm())
+    } catch (err) {
+      const message = err?.response?.data?.message || 'Unable to submit feedback right now.'
+      showToast({ title: 'Submission failed', message, variant: 'error' })
+    } finally {
+      setReviewLoading(false)
+    }
+  }
+
   return (
     <main className="relative overflow-hidden bg-primary text-ivory">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,175,55,0.16),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.06),transparent_24%)]" />
@@ -132,6 +228,30 @@ function HomePage() {
                 </LuxuryButton>
               </div>
 
+              {search.trim() ? (
+                <Card className="max-h-64 overflow-auto border border-gold/18 bg-primary/58 p-3">
+                  <p className="mb-2 text-xs uppercase tracking-[0.28em] text-goldSoft">Search results</p>
+                  {filteredHotels.length === 0 ? (
+                    <p className="text-sm text-ivory/65">No hotels found for this search.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {filteredHotels.map((hotel) => (
+                        <Link
+                          key={hotel._id || hotel.id || hotel.name}
+                          to={`/feedback?hotelId=${hotel._id || hotel.id}`}
+                          className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-ivory/85 transition hover:border-gold/35 hover:text-goldSoft"
+                        >
+                          <span>{hotel.name}</span>
+                          <span className="text-xs text-ivory/55">
+                            {hotel.city}, {hotel.state}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </Card>
+              ) : null}
+
               <div className="flex flex-wrap gap-3">
                 {['Premium curation', 'Fast feedback collection', 'Admin-ready reporting'].map((item) => (
                   <Card key={item} className="border border-gold/18 bg-white/5 px-4 py-3">
@@ -161,6 +281,87 @@ function HomePage() {
             </Card>
           ))}
         </motion.section>
+
+        {selectedHotel ? (
+          <motion.section {...fadeInUp} className="mt-24">
+            <Card className="overflow-hidden border border-gold/20 bg-secondary/90 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.28)]">
+              <div className="grid gap-0 lg:grid-cols-[0.95fr_1.05fr]">
+                <div className="relative min-h-[360px] overflow-hidden rounded-[1.8rem]">
+                  <img
+                    src={selectedHotel.photoUrl || heroImage}
+                    alt={selectedHotel.name}
+                    className="h-full w-full object-cover object-center"
+                  />
+                  <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(11,11,11,0.08)_0%,rgba(11,11,11,0.64)_100%)]" />
+                  <div className="absolute bottom-5 left-5 right-5 space-y-2">
+                    <p className="text-xs uppercase tracking-[0.34em] text-goldSoft">Selected hotel</p>
+                    <h2 className="text-3xl font-semibold text-ivory">{selectedHotel.name}</h2>
+                    <p className="text-sm text-ivory/75">
+                      {selectedHotel.city}, {selectedHotel.state}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-5 rounded-[1.8rem] p-5 lg:p-8">
+                  <div className="space-y-3">
+                    <p className="text-sm uppercase tracking-[0.32em] text-goldSoft">Review form</p>
+                    <p className="text-sm leading-7 text-ivory/70">
+                      Leave a review directly from the homepage for this hotel.
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleReviewSubmit} className="space-y-4">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <InputField
+                        label="Name"
+                        value={reviewForm.userName}
+                        onChange={(event) => updateReviewField('userName', event.target.value)}
+                        placeholder="Your name"
+                        required
+                      />
+                      <InputField
+                        label="Contact"
+                        value={reviewForm.contact}
+                        onChange={(event) => updateReviewField('contact', event.target.value)}
+                        placeholder="Phone or email"
+                        required
+                      />
+                    </div>
+
+                    <div className="grid gap-4 rounded-3xl border border-white/10 bg-white/5 p-4 sm:grid-cols-2">
+                      {[
+                        ['overall', 'Overall experience'],
+                        ['food', 'Food & dining'],
+                        ['service', 'Service quality'],
+                        ['ambience', 'Ambience & comfort'],
+                      ].map(([key, label]) => (
+                        <div key={key} className="space-y-2">
+                          <span className="text-sm font-medium text-ivory/80">{label}</span>
+                          <RatingStars value={reviewForm.ratings[key]} onChange={(value) => updateReviewRating(key, value)} />
+                        </div>
+                      ))}
+                    </div>
+
+                    <TextareaField
+                      label="Suggestion"
+                      value={reviewForm.suggestion}
+                      onChange={(event) => updateReviewField('suggestion', event.target.value)}
+                      placeholder="Share your experience or suggestion..."
+                      maxLength={500}
+                      required
+                    />
+
+                    <div className="flex justify-end">
+                      <LuxuryButton type="submit" disabled={reviewLoading}>
+                        {reviewLoading ? 'Submitting...' : 'Submit Review'}
+                      </LuxuryButton>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </Card>
+          </motion.section>
+        ) : null}
 
         <motion.section {...fadeInUp} className="mt-24 grid gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
           <Card className="overflow-hidden border border-gold/20 bg-secondary/90 p-5">
@@ -201,9 +402,9 @@ function HomePage() {
           <div className="flex items-end justify-between gap-4">
             <div>
               <h2 className="text-2xl font-semibold text-ivory">Available hotels</h2>
-              <p className="text-sm text-ivory/60">Browse live hotel listings from the API.</p>
+              <p className="text-sm text-ivory/60">Top 3 hotels by average overall rating.</p>
             </div>
-            <p className="text-sm text-ivory/60">{filteredHotels.length} result(s)</p>
+            <p className="text-sm text-ivory/60">{topRatedHotels.length} result(s)</p>
           </div>
 
           {loading ? (
@@ -214,11 +415,11 @@ function HomePage() {
             </div>
           ) : error ? (
             <Card className="border border-red-400/20 bg-red-500/10 p-6 text-red-100">{error}</Card>
-          ) : filteredHotels.length === 0 ? (
+          ) : topRatedHotels.length === 0 ? (
             <Card className="space-y-4 p-7 text-center">
-              <p className="text-xl font-semibold text-ivory">No hotel matched your search.</p>
+              <p className="text-xl font-semibold text-ivory">No hotels available yet.</p>
               <p className="text-sm leading-7 text-ivory/65">
-                Try broader keywords, city/state names, or reset search to view all available hotels.
+                Ask admin to add hotels first so guests can start submitting reviews.
               </p>
               <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <LuxuryButton type="button" onClick={() => setSearch('')}>
@@ -231,16 +432,19 @@ function HomePage() {
             </Card>
           ) : (
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-              {filteredHotels.map((hotel) => (
+              {topRatedHotels.map((hotel) => (
                 <motion.div key={hotel._id || hotel.id || hotel.name} {...hoverLift}>
-                  <HotelCard
-                    hotel={{
-                      name: hotel.name,
-                      location: [hotel.city, hotel.state].filter(Boolean).join(', '),
-                      rating: hotel.ratingsSummary?.overall || 0,
-                      description: `Total reviews: ${hotel.totalReviews || 0}`,
-                    }}
-                  />
+                  <Link to={`/feedback?hotelId=${hotel._id || hotel.id}`} className="block">
+                    <HotelCard
+                      hotel={{
+                        name: hotel.name,
+                        location: [hotel.city, hotel.state].filter(Boolean).join(', '),
+                        rating: hotel.ratingsSummary?.overall || 0,
+                        photoUrl: hotel.photoUrl,
+                        description: `Total reviews: ${hotel.totalReviews || 0}`,
+                      }}
+                    />
+                  </Link>
                 </motion.div>
               ))}
             </div>

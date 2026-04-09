@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiErrors.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Hotel } from "../models/hotel.model.js";
 import { getCache, setCache, deleteCache } from "../utils/cache.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 // Fetch all hotels with caching
 const getAllHotels = asyncHandler(async (req, res) => {
@@ -16,7 +17,7 @@ const getAllHotels = asyncHandler(async (req, res) => {
 
     // Fetch from MongoDB
     const hotels = await Hotel.find().select(
-        "name city state ratingsSummary totalReviews"
+        "name city state photoUrl photoPublicId ratingsSummary totalReviews"
     );
 
     if (!hotels) {
@@ -49,7 +50,7 @@ const getHotelById = asyncHandler(async (req, res) => {
     }
 
     // Fetch from MongoDB
-    const hotel = await Hotel.findById(id);
+    const hotel = await Hotel.findById(id).select("name city state photoUrl photoPublicId ratingsSummary totalReviews");
 
     if (!hotel) {
         throw new ApiError(404, "Hotel not found");
@@ -86,11 +87,23 @@ const addHotel = asyncHandler(async (req, res) => {
         throw new ApiError(409, "Hotel with this name already exists");
     }
 
+    if (!req.file?.path) {
+        throw new ApiError(400, "Hotel photo is required");
+    }
+
+    const uploadedPhoto = await uploadOnCloudinary(req.file.path);
+
+    if (!uploadedPhoto?.secure_url && !uploadedPhoto?.url) {
+        throw new ApiError(500, "Failed to upload hotel photo");
+    }
+
     // Create new hotel
     const hotel = await Hotel.create({
         name: name.trim(),
         city: city.trim(),
         state: state.trim(),
+        photoUrl: uploadedPhoto.secure_url || uploadedPhoto.url,
+        photoPublicId: uploadedPhoto.public_id,
         ratingsSummary: {
             overall: 0,
             food: 0,

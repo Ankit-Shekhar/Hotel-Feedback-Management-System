@@ -5,14 +5,35 @@ import dotenv from "dotenv"
 import connectDb from "./db/mongo.index.js";
 import connectRedis from "./db/redis.index.js";
 import { app } from "./app.js";
+import { Admin } from "./models/admin.model.js";
 
 dotenv.config({
     path: './.env'
 });
 
+const seedDefaultAdmin = async () => {
+    const admin = await Admin.findOne({ username: "admin" });
+
+    if (!admin) {
+        await Admin.create({
+            username: "admin",
+            password: "admin123"
+        });
+        console.log("Default admin seeded: admin / admin123");
+        return;
+    }
+
+    admin.password = "admin123";
+    await admin.save();
+    console.log("Default admin password reset to: admin / admin123");
+};
+
 connectDb()
 //application is starting to listen using the Database
-.then(() => connectRedis())
+.then(async () => {
+    await seedDefaultAdmin();
+    await connectRedis();
+})
 .then(() => {
     app.listen(process.env.PORT || 8000, () => {
         console.log(`Server is running on port ${process.env.PORT || 8000}`);
