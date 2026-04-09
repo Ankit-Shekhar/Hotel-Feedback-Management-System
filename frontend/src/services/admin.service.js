@@ -2,10 +2,14 @@ import api from './api'
 
 export const loginAdmin = async (credentials) => {
   const { data } = await api.post('/admin/login', credentials)
-  return data
+  return data?.data ?? null
 }
 
-export const getDashboardSummary = async () => {
+export const getDashboardStats = async () => {
   const { data } = await api.get('/admin/dashboard')
-  return data
+  return data?.data ?? { totalHotels: 0, totalFeedbacks: 0, averageRatings: {} }
 }
+
+export const getDashboardSummary = getDashboardStats
+
+

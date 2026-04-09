@@ -4,11 +4,11 @@ function Modal({ title = 'Modal', isOpen = false, onClose, children }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
-      <div className="w-full max-w-lg rounded-lg bg-white p-5 shadow-lg">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-lg rounded-3xl border border-white/10 bg-secondary p-5 shadow-[0_20px_50px_rgba(0,0,0,0.45)]">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-          <button onClick={onClose} className="text-sm text-slate-600 hover:text-slate-900">
+          <h2 className="text-lg font-semibold text-ivory">{title}</h2>
+          <button onClick={onClose} className="text-sm text-ivory/60 transition hover:text-gold">
             Close
           </button>
         </div>
@@ -19,3 +19,4 @@ function Modal({ title = 'Modal', isOpen = false, onClose, children }) {
 }
 
 export default Modal
+
