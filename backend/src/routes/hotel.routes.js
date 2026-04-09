@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { addHotel, getAllHotels, getHotelById } from "../controllers/hotel.controller.js";
+import { addHotel, getAllHotels, getHotelById, updateHotel } from "../controllers/hotel.controller.js";
 import { authMiddleware } from "../middlewares/authAdmin.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
 
@@ -10,6 +10,7 @@ const router = Router();
 router.route("/").get(getAllHotels).post(authMiddleware, upload.single("photo"), addHotel);
 
 // Public: fetch one hotel by id
-router.route("/:id").get(getHotelById);
+// Protected (Admin): update hotel
+router.route("/:id").get(getHotelById).patch(authMiddleware, updateHotel);
 
 export default router;

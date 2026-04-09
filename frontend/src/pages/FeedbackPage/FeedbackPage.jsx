@@ -63,6 +63,10 @@ function FeedbackPage() {
   }, [preselectedHotelId, showToast])
 
   const hotelOptions = useMemo(() => hotels, [hotels])
+  const selectedHotel = useMemo(
+    () => hotels.find((hotel) => hotel._id === form.hotelId) || null,
+    [form.hotelId, hotels],
+  )
   const ratingsComplete = Object.values(form.ratings).every((value) => value >= 1 && value <= 5)
   const canSubmit = Boolean(
     form.hotelId &&
@@ -163,9 +167,21 @@ function FeedbackPage() {
               <p>All four rating categories are required: overall, food, service, and ambience.</p>
             </div>
 
-            <Card className="bg-white/5 p-4 text-sm text-ivory/75">
-              {loadingHotels ? 'Loading hotel options...' : `${hotelOptions.length} hotel(s) available for feedback.`}
-            </Card>
+            {selectedHotel?.photoUrl ? (
+              <Card className="overflow-hidden border border-white/10 bg-primary/40 p-3">
+                <img
+                  src={selectedHotel.photoUrl}
+                  alt={selectedHotel.name}
+                  className="h-44 w-full rounded-2xl object-cover"
+                />
+                <div className="mt-3 text-sm text-ivory/75">
+                  <p className="font-semibold text-ivory">{selectedHotel.name}</p>
+                  <p className="text-xs text-ivory/60">
+                    {selectedHotel.city}, {selectedHotel.state}
+                  </p>
+                </div>
+              </Card>
+            ) : null}
 
             {error ? <Card className="border-red-400/20 bg-red-500/10 p-4 text-sm text-red-100">{error}</Card> : null}
           </motion.aside>

@@ -5,7 +5,7 @@ import { Card, InputField, LuxuryButton } from '../../components/ui'
 import { DashboardChart, SkeletonBlock } from '../../components/common'
 import { Sidebar, Container } from '../../components/layout'
 import { useToast } from '../../context/useToast'
-import { addHotel, getDashboardStats, getHotels, getRecentFeedbacks } from '../../services'
+import { addHotel, getDashboardStats, getHotels, getRecentFeedbacks, updateHotel } from '../../services'
 import { fadeInUp, hoverLift } from '../../utils/motion'
 
 function DashboardPage() {
@@ -23,6 +23,9 @@ function DashboardPage() {
   })
   const [hotelPhoto, setHotelPhoto] = useState(null)
   const [hotelPhotoPreview, setHotelPhotoPreview] = useState('')
+  const [editHotelId, setEditHotelId] = useState('')
+  const [editForm, setEditForm] = useState({ name: '', city: '', state: '' })
+  const [updatingHotel, setUpdatingHotel] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -80,6 +83,25 @@ function DashboardPage() {
       }
     }
   }, [hotelPhotoPreview])
+
+  useEffect(() => {
+    if (!editHotelId && hotels.length > 0) {
+      setEditHotelId(hotels[0]._id)
+    }
+  }, [editHotelId, hotels])
+
+  useEffect(() => {
+    const selectedHotel = hotels.find((hotel) => hotel._id === editHotelId)
+    if (!selectedHotel) {
+      return
+    }
+
+    setEditForm({
+      name: selectedHotel.name || '',
+      city: selectedHotel.city || '',
+      state: selectedHotel.state || '',
+    })
+  }, [editHotelId, hotels])
 
   const handleHotelPhotoChange = (event) => {
     const file = event.target.files?.[0] || null
@@ -148,6 +170,35 @@ function DashboardPage() {
     ]
   }, [stats])
 
+  const handleEditSubmit = async (event) => {
+    event.preventDefault()
+
+    if (!editHotelId) {
+      showToast({ title: 'Select a hotel', message: 'Choose a hotel to edit first.', variant: 'error' })
+      return
+    }
+
+    setUpdatingHotel(true)
+
+    try {
+      await updateHotel(editHotelId, {
+        name: editForm.name,
+        city: editForm.city,
+        state: editForm.state,
+      })
+
+      showToast({ title: 'Hotel updated', message: 'Hotel details were updated successfully.', variant: 'success' })
+
+      const refreshedHotels = await getHotels()
+      setHotels(refreshedHotels)
+    } catch (err) {
+      const message = err?.response?.data?.message || 'Unable to update hotel.'
+      showToast({ title: 'Update failed', message, variant: 'error' })
+    } finally {
+      setUpdatingHotel(false)
+    }
+  }
+
   return (
     <main className="min-h-[calc(100vh-132px)] bg-primary text-ivory">
       <div className="flex flex-col md:flex-row">
@@ -199,7 +250,7 @@ function DashboardPage() {
                 />
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-[1fr_1.1fr]">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <InputField
                   label="State"
                   value={hotelForm.state}
@@ -207,6 +258,9 @@ function DashboardPage() {
                   placeholder="e.g. Rajasthan"
                   required
                 />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-[1fr_1.1fr]">
                 <label className="block space-y-2">
                   <span className="text-sm font-medium text-ivory/80">Hotel photo</span>
                   <input
@@ -228,6 +282,62 @@ function DashboardPage() {
               <div className="flex justify-end">
                 <LuxuryButton type="submit" disabled={addingHotel}>
                   {addingHotel ? 'Adding hotel...' : 'Add hotel'}
+                </LuxuryButton>
+              </div>
+            </form>
+          </motion.section>
+
+          <motion.section {...fadeInUp} className="mb-8 grid gap-6 rounded-[2rem] border border-white/10 bg-secondary/90 p-6 lg:grid-cols-[0.95fr_1.05fr]">
+            <div className="space-y-3">
+              <div className="inline-flex rounded-full border border-gold/25 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.35em] text-goldSoft">
+                Edit hotel
+              </div>
+              <h2 className="text-3xl font-semibold text-ivory">Update hotel name, city, or state</h2>
+              <p className="max-w-xl text-sm leading-7 text-ivory/70">
+                Select a hotel you have added and update its name, city, or state. Leave a field blank to keep it unchanged.
+              </p>
+            </div>
+
+            <form onSubmit={handleEditSubmit} className="space-y-4 rounded-[1.5rem] border border-white/10 bg-primary/50 p-5">
+              <label className="block space-y-2">
+                <span className="text-sm font-medium text-ivory/80">Select hotel</span>
+                <select
+                  value={editHotelId}
+                  onChange={(event) => setEditHotelId(event.target.value)}
+                  className="w-full rounded-2xl border border-white/10 bg-secondary px-4 py-3 text-sm text-ivory outline-none transition focus:border-gold focus:shadow-[0_0_0_4px_rgba(212,175,55,0.12)]"
+                >
+                  {hotels.map((hotel) => (
+                    <option key={hotel._id} value={hotel._id} className="bg-secondary">
+                      {hotel.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <InputField
+                  label="Hotel name"
+                  value={editForm.name}
+                  onChange={(event) => setEditForm((current) => ({ ...current, name: event.target.value }))}
+                  placeholder="Updated hotel name"
+                />
+                <InputField
+                  label="City"
+                  value={editForm.city}
+                  onChange={(event) => setEditForm((current) => ({ ...current, city: event.target.value }))}
+                  placeholder="Updated city"
+                />
+              </div>
+              <InputField
+                label="State"
+                value={editForm.state}
+                onChange={(event) => setEditForm((current) => ({ ...current, state: event.target.value }))}
+                placeholder="Updated state"
+              />
+
+              <div className="flex justify-end">
+                <LuxuryButton type="submit" disabled={updatingHotel}>
+                  {updatingHotel ? 'Updating...' : 'Update hotel'}
                 </LuxuryButton>
               </div>
             </form>

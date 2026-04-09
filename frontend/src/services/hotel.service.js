@@ -10,6 +10,11 @@ export const addHotel = async (payload) => {
   return data?.data ?? null
 }
 
+export const updateHotel = async (hotelId, payload) => {
+  const { data } = await api.patch(`/hotels/${hotelId}`, payload)
+  return data?.data ?? null
+}
+
 export const getHotelById = async (hotelId) => {
   const { data } = await api.get(`/hotels/${hotelId}`)
   return data?.data ?? null

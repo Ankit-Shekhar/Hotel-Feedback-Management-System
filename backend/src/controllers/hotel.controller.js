@@ -81,6 +81,7 @@ const addHotel = asyncHandler(async (req, res) => {
         throw new ApiError(400, "State is required");
     }
 
+
     // Check if hotel with same name already exists (unique constraint)
     const existingHotel = await Hotel.findOne({ name: name.trim() });
     if (existingHotel) {
@@ -125,4 +126,43 @@ const addHotel = asyncHandler(async (req, res) => {
     );
 });
 
-export { getAllHotels, getHotelById, addHotel };
+// Update hotel name/address (Admin Only)
+const updateHotel = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { name, city, state } = req.body;
+
+    if (!id) {
+        throw new ApiError(400, "Hotel ID is required");
+    }
+
+    const hotel = await Hotel.findById(id);
+    if (!hotel) {
+        throw new ApiError(404, "Hotel not found");
+    }
+
+    if (name && name.trim() && name.trim() !== hotel.name) {
+        const existingHotel = await Hotel.findOne({ name: name.trim() });
+        if (existingHotel) {
+            throw new ApiError(409, "Hotel with this name already exists");
+        }
+        hotel.name = name.trim();
+    }
+
+    if (city && city.trim()) {
+        hotel.city = city.trim();
+    }
+
+    if (state && state.trim()) {
+        hotel.state = state.trim();
+    }
+
+    await hotel.save();
+    deleteCache("hotels:all");
+    deleteCache(`hotel:${id}`);
+
+    return res.status(200).json(
+        new ApiResponse(200, "Hotel updated successfully", hotel)
+    );
+});
+
+export { getAllHotels, getHotelById, addHotel, updateHotel };

@@ -21,6 +21,11 @@ const hotelSchema = new Schema(
 			trim: true,
 			index: true
 		},
+		address: {
+			type: String,
+			default: '',
+			trim: true
+		},
 		photoUrl: {
 			type: String,
 			default: ''
