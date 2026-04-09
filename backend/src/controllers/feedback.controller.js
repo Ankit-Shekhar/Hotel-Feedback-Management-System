@@ -1,9 +1,9 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiErrors.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { Feedback } from "../models/feedbacks.model.js";
-import { Hotel } from "../models/hotels.model.js";
-import { deleteCache } from "../utils/redis.js";
+import { Feedback } from "../models/feedback.model.js";
+import { Hotel } from "../models/hotel.model.js";
+import { deleteCache } from "../utils/cache.js";
 
 // Calculate average rating from array of feedbacks
 const calculateAverageRating = (feedbacks, fieldName) => {

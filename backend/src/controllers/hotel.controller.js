@@ -1,8 +1,8 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiErrors.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { Hotel } from "../models/hotels.model.js";
-import { getCache, setCache, deleteCache } from "../utils/redis.js";
+import { Hotel } from "../models/hotel.model.js";
+import { getCache, setCache, deleteCache } from "../utils/cache.js";
 
 // Fetch all hotels with caching
 const getAllHotels = asyncHandler(async (req, res) => {
