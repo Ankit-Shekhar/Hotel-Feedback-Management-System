@@ -6,6 +6,10 @@ import { Admin } from "../models/admin.model.js";
 // Verify JWT token from header and attach admin to req.admin
 export const authMiddleware = async (req, res, next) => {
     try {
+        if (!process.env.ADMIN_TOKEN_SECRET) {
+            throw new ApiError(500, "ADMIN_TOKEN_SECRET is not configured")
+        }
+
         // Get token from Authorization header (Bearer token format)
         // also support tokens from cookies for admin
         const token = req.cookies?.adminToken || req.header("Authorization")?.replace("Bearer ", "");
@@ -15,7 +19,7 @@ export const authMiddleware = async (req, res, next) => {
         }
 
         // Verify JWT token using ADMIN_TOKEN_SECRET
-        const decodedToken = jwt.verify(token, process.env.ADMIN_TOKEN_SECRET || "admin-secret-key");
+        const decodedToken = jwt.verify(token, process.env.ADMIN_TOKEN_SECRET);
 
         // Get admin from DB using decoded token ID
         const admin = await Admin.findById(decodedToken?._id).select("-password");

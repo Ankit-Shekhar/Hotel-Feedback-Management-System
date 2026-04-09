@@ -11,6 +11,10 @@ import jwt from "jsonwebtoken";
 // we dont use "asyncHandler" here because this function is not a controller function, its just a utility function to generate tokens
 const generateAdminToken = async (adminId) => {
     try {
+        if (!process.env.ADMIN_TOKEN_SECRET) {
+            throw new ApiError(500, "ADMIN_TOKEN_SECRET is not configured")
+        }
+
         // finding the admin in DB on the basis of "adminId" and generating JWT token
         const admin = await Admin.findById(adminId);
 
@@ -20,7 +24,7 @@ const generateAdminToken = async (adminId) => {
                 _id: admin._id,
                 username: admin.username
             },
-            process.env.ADMIN_TOKEN_SECRET || "admin-secret-key",
+            process.env.ADMIN_TOKEN_SECRET,
             {
                 expiresIn: process.env.ADMIN_TOKEN_EXPIRY || "7d"
             }

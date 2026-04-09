@@ -30,7 +30,7 @@ export const validateFeedback = (req, res, next) => {
 
         // Validate each rating is between 1-5
         const ratingValues = [ratings.overall, ratings.food, ratings.service, ratings.ambience];
-        if (!ratingValues.every((val) => val >= 1 && val <= 5)) {
+        if (!ratingValues.every((val) => typeof val === "number" && Number.isFinite(val) && val >= 1 && val <= 5)) {
             throw new ApiError(400, "All ratings must be between 1 and 5");
         }
 
@@ -47,6 +47,10 @@ export const validateFeedback = (req, res, next) => {
         // Check suggestion is string
         if (typeof suggestion !== "string") {
             throw new ApiError(400, "Suggestion must be a string");
+        }
+
+        if (!suggestion.trim()) {
+            throw new ApiError(400, "Suggestion must not be empty")
         }
 
         // Check suggestion max length

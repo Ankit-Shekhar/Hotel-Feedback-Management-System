@@ -28,9 +28,14 @@ export const getCache = (key) => {
 // Store JSON in cache with TTL
 export const setCache = (key, data, ttl = DEFAULT_TTL) => {
     try {
+        const ttlNumber = Number(ttl)
+        const normalizedTtl = Number.isFinite(ttlNumber)
+            ? Math.min(600, Math.max(300, ttlNumber))
+            : DEFAULT_TTL
+
         cacheStore[key] = {
             value: JSON.stringify(data),
-            expiresAt: Date.now() + (ttl * 1000)
+            expiresAt: Date.now() + (normalizedTtl * 1000)
         };
 
         return true;

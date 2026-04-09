@@ -39,11 +39,15 @@ const submitFeedback = asyncHandler(async (req, res) => {
 
     // Validate rating values are between 1-5
     const ratingValues = [ratings.overall, ratings.food, ratings.service, ratings.ambience];
-    if (!ratingValues.every(val => val >= 1 && val <= 5)) {
+    if (!ratingValues.every((val) => typeof val === "number" && Number.isFinite(val) && val >= 1 && val <= 5)) {
         throw new ApiError(400, "All ratings must be between 1 and 5");
     }
 
-    if (!suggestion || !suggestion.trim()) {
+    if (typeof suggestion !== "string") {
+        throw new ApiError(400, "Suggestion must be a string");
+    }
+
+    if (!suggestion.trim()) {
         throw new ApiError(400, "Suggestion is required");
     }
 
@@ -52,7 +56,7 @@ const submitFeedback = asyncHandler(async (req, res) => {
     }
 
     // STEP 1: Validate hotel exists
-    const hotel = await Hotel.findById(hotelId);
+    const hotel = req.hotel || await Hotel.findById(hotelId);
     if (!hotel) {
         throw new ApiError(404, "Hotel not found");
     }
@@ -149,8 +153,10 @@ const getFeedbackByHotel = asyncHandler(async (req, res) => {
     }
 
     // Convert to numbers for pagination
-    const pageNum = Math.max(1, parseInt(page));
-    const limitNum = Math.max(1, Math.min(100, parseInt(limit))); // Max 100 per page
+    const parsedPage = Number.parseInt(page, 10);
+    const parsedLimit = Number.parseInt(limit, 10);
+    const pageNum = Number.isNaN(parsedPage) ? 1 : Math.max(1, parsedPage);
+    const limitNum = Number.isNaN(parsedLimit) ? 10 : Math.max(1, Math.min(100, parsedLimit)); // Max 100 per page
     const skip = (pageNum - 1) * limitNum;
 
     // Fetch total count for pagination
@@ -182,7 +188,8 @@ const getRecentFeedbacks = asyncHandler(async (req, res) => {
     const { limit = 15 } = req.query;
 
     // Convert to number and limit between 10-20
-    const limitNum = Math.max(10, Math.min(20, parseInt(limit)));
+    const parsedLimit = Number.parseInt(limit, 10);
+    const limitNum = Number.isNaN(parsedLimit) ? 15 : Math.max(10, Math.min(20, parsedLimit));
 
     // Fetch latest feedbacks globally sorted by creation date
     const feedbacks = await Feedback.find()
