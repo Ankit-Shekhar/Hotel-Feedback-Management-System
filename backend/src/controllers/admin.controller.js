@@ -92,11 +92,11 @@ const loginAdmin = asyncHandler(async (req, res) => {
         .json(
             new ApiResponse(
                 200,
+                "Admin logged in successfully",
                 {
                     admin: loggedInAdmin,
                     token
-                },
-                "Admin logged in successfully"
+                }
             )
         );
 });
