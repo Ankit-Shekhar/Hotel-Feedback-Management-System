@@ -305,9 +305,10 @@ function DashboardPage() {
                   value={editHotelId}
                   onChange={(event) => setEditHotelId(event.target.value)}
                   className="w-full rounded-2xl border border-white/10 bg-secondary px-4 py-3 text-sm text-ivory outline-none transition focus:border-gold focus:shadow-[0_0_0_4px_rgba(212,175,55,0.12)]"
+                  style={{ colorScheme: 'dark' }}
                 >
                   {hotels.map((hotel) => (
-                    <option key={hotel._id} value={hotel._id} className="bg-secondary">
+                    <option key={hotel._id} value={hotel._id} className="bg-secondary text-ivory" style={{ backgroundColor: '#161616', color: '#F8F6F1' }}>
                       {hotel.name}
                     </option>
                   ))}

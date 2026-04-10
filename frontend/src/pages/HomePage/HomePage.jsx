@@ -184,8 +184,21 @@ function HomePage() {
 
   return (
     <main className="relative overflow-hidden bg-primary text-ivory">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,175,55,0.16),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.06),transparent_24%)]" />
-      <Container className="relative py-10 sm:py-14 lg:py-16">
+      <div className="absolute inset-0 z-0">
+        <video
+          className="h-full w-full object-cover object-center"
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="metadata"
+          poster={heroImage}
+        >
+          <source src="/backVideo.mp4" type="video/mp4" />
+        </video>
+      </div>
+      <div className="absolute inset-0 z-10 bg-[linear-gradient(180deg,rgba(11,11,11,0.62)_0%,rgba(11,11,11,0.76)_100%),radial-gradient(circle_at_top_right,rgba(212,175,55,0.16),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.06),transparent_24%)]" />
+      <Container className="relative z-20 py-10 sm:py-14 lg:py-16">
         <Motion.section
           {...fadeInUp}
           className="relative overflow-hidden rounded-[3rem] border border-gold/20 bg-secondary/80 shadow-[0_25px_70px_rgba(0,0,0,0.35)]"

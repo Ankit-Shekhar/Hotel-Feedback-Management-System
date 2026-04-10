@@ -1,9 +1,9 @@
 import { AnimatePresence, motion as Motion } from 'framer-motion'
 
 const variantClasses = {
-  success: 'border-gold/45 bg-secondary text-ivory',
-  error: 'border-red-400/45 bg-secondary text-red-100',
-  info: 'border-white/20 bg-secondary text-ivory',
+  success: 'border-gold/45 bg-[#161616] text-ivory',
+  error: 'border-red-400/45 bg-[#1C1111] text-red-100',
+  info: 'border-white/20 bg-[#161616] text-ivory',
 }
 
 function ToastViewport({ toasts = [], onDismiss }) {
@@ -24,7 +24,7 @@ function ToastViewport({ toasts = [], onDismiss }) {
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-1">
                 <p className="text-sm font-semibold tracking-wide">{toast.title}</p>
-                {toast.message ? <p className="text-sm leading-6 opacity-85">{toast.message}</p> : null}
+                {toast.message ? <p className="text-sm leading-6 opacity-100">{toast.message}</p> : null}
               </div>
               <button
                 type="button"

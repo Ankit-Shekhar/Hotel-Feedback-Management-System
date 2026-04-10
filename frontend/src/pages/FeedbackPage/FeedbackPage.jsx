@@ -151,7 +151,7 @@ function FeedbackPage() {
         </Motion.section>
 
         <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-          <Motion.aside {...hoverLift} className="space-y-4 rounded-[2rem] border border-white/10 bg-secondary/90 p-6">
+          <Motion.aside {...hoverLift} className="space-y-4 rounded-[2rem] border border-white/10 bg-secondary/88 p-6 backdrop-blur-[1px]">
             <h2 className="text-2xl font-semibold text-ivory">Important notes</h2>
             <div className="space-y-3 text-sm leading-6 text-ivory/70">
               <p>Select a hotel before submitting your review.</p>
@@ -183,7 +183,7 @@ function FeedbackPage() {
           <Motion.form
             {...fadeInUp}
             onSubmit={handleSubmit}
-            className="space-y-5 rounded-[2rem] border border-gold/15 bg-secondary/95 p-6 shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
+            className="space-y-5 rounded-[2rem] border border-gold/15 bg-secondary/90 p-6 shadow-[0_18px_45px_rgba(0,0,0,0.28)] backdrop-blur-[1px]"
           >
             <div className="grid gap-4 sm:grid-cols-2">
               <InputField
@@ -208,13 +208,14 @@ function FeedbackPage() {
                 value={form.hotelId}
                 onChange={(event) => updateField('hotelId', event.target.value)}
                 className="w-full rounded-2xl border border-white/10 bg-secondary px-4 py-3 text-sm text-ivory outline-none transition focus:border-gold focus:shadow-[0_0_0_4px_rgba(212,175,55,0.12)]"
+                style={{ colorScheme: 'dark' }}
                 required
               >
                 <option value="" disabled>
                   Select a hotel
                 </option>
                 {hotels.map((hotel) => (
-                  <option key={hotel._id} value={hotel._id} className="bg-secondary">
+                  <option key={hotel._id} value={hotel._id} className="bg-secondary text-ivory" style={{ backgroundColor: '#161616', color: '#F8F6F1' }}>
                     {hotel.name} - {hotel.city}, {hotel.state}
                   </option>
                 ))}
