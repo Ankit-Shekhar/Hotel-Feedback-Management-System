@@ -9,29 +9,23 @@ dotenv.config({
 });
 
 const seedDefaultAdmin = async () => {
-    const shouldSeed = process.env.SEED_DEFAULT_ADMIN === "true";
+    const username = "admin";
+    const password = "admin123";
 
-    if (!shouldSeed) {
-        return;
-    }
-
-    const username = process.env.DEFAULT_ADMIN_USERNAME;
-    const password = process.env.DEFAULT_ADMIN_PASSWORD;
-
-    if (!username || !password) {
-        console.warn("SEED_DEFAULT_ADMIN is true, but DEFAULT_ADMIN_USERNAME or DEFAULT_ADMIN_PASSWORD is missing. Skipping admin seed.");
-        return;
-    }
-
-    const admin = await Admin.findOne({ username: username.trim() });
+    const admin = await Admin.findOne({ username });
 
     if (!admin) {
         await Admin.create({
-            username: username.trim(),
+            username,
             password
         });
-        console.log("Default admin seeded from environment variables.");
+        console.log("Default admin seeded: admin / admin123");
+        return;
     }
+
+    admin.password = password;
+    await admin.save();
+    console.log("Default admin password reset to: admin / admin123");
 };
 
 connectDb()

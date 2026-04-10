@@ -8,9 +8,11 @@ import { rateLimiter } from "./middlewares/rateLimiter.middleware.js";
 
 const app = express();
 
+const normalizeOrigin = (value) => value?.trim().replace(/\/+$/, "");
+
 const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173")
     .split(",")
-    .map((origin) => origin.trim())
+    .map((origin) => normalizeOrigin(origin))
     .filter(Boolean);
 
 app.set("trust proxy", 1);
@@ -21,7 +23,9 @@ app.use(compression());
 // app.use -> .use is used to deal with Middlewares and Configurations.
 app.use(cors({
     origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
+        const normalizedOrigin = normalizeOrigin(origin);
+
+        if (!origin || allowedOrigins.includes(normalizedOrigin)) {
             callback(null, true);
             return;
         }
