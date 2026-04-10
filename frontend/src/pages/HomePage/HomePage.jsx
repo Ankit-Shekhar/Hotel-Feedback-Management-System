@@ -433,7 +433,7 @@ function HomePage() {
           ) : (
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
               {topRatedHotels.map((hotel) => (
-                <motion.div key={hotel._id || hotel.id || hotel.name} {...hoverLift}>
+                <Motion.div key={hotel._id || hotel.id || hotel.name} {...hoverLift}>
                   <Link to={`/feedback?hotelId=${hotel._id || hotel.id}`} className="block">
                     <HotelCard
                       hotel={{
@@ -445,13 +445,13 @@ function HomePage() {
                       }}
                     />
                   </Link>
-                </motion.div>
+                </Motion.div>
               ))}
             </div>
           )}
         </Motion.section>
 
-        <motion.section {...fadeInUp} className="mt-24 space-y-6">
+        <Motion.section {...fadeInUp} className="mt-24 space-y-6">
           <div className="flex items-end justify-between gap-4">
             <div>
               <p className="text-sm uppercase tracking-[0.32em] text-goldSoft">Visual gallery</p>
@@ -476,7 +476,7 @@ function HomePage() {
               </Card>
             ))}
           </div>
-        </motion.section>
+        </Motion.section>
       </Container>
     </main>
   )

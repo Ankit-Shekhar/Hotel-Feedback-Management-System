@@ -6,4 +6,7 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   publicDir: 'dummyImages',
   plugins: [react(), tailwindcss()],
+  build: {
+    chunkSizeWarningLimit: 900,
+  },
 })
