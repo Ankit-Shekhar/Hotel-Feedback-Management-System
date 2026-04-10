@@ -1,13 +1,33 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import compression from "compression";
+import helmet from "helmet";
+import { rateLimiter } from "./middlewares/rateLimiter.middleware.js";
 
 
 const app = express();
 
+const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+app.set("trust proxy", 1);
+
+app.use(helmet());
+app.use(compression());
+
 // app.use -> .use is used to deal with Middlewares and Configurations.
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+            return;
+        }
+
+        callback(new Error("Not allowed by CORS"));
+    },
     credentials: true
 }));
 
@@ -24,6 +44,7 @@ app.use(express.static("public"));
 
 //cookie parser is used to read imp cookies from users browser and update them as well, basically performing CRUD ops over the users cookies
 app.use(cookieParser());
+app.use(rateLimiter);
 
 
 
@@ -40,6 +61,9 @@ import { errorMiddleware } from "./middlewares/errorMiddleware.js";
 app.use("/api/hotels", hotelRouter)
 app.use("/api/feedback", feedbackRouter)
 app.use("/api/admin", adminRouter)
+app.get("/api/health", (req, res) => {
+    return res.status(200).json({ success: true, message: "Server is healthy" });
+});
 
 //keep error middleware at last so it can handle errors from all routes
 app.use(errorMiddleware)

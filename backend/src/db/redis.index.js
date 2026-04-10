@@ -4,6 +4,14 @@ let redisClient = null;
 
 const connectRedis = async () => {
 	try {
+		const hasRedisUrl = Boolean(process.env.REDIS_URL);
+		const hasSocketConfig = Boolean(process.env.REDIS_HOST);
+
+		if (!hasRedisUrl && !hasSocketConfig) {
+			console.warn("Redis config not found. Continuing without Redis cache backend.");
+			return null;
+		}
+
 		//if REDIS_URL is present we can directly use that single URI
 		const redisConfig = process.env.REDIS_URL
 			? {
@@ -34,10 +42,9 @@ const connectRedis = async () => {
 
 		return redisClient;
 	} catch (error) {
-		console.log(`Redis connection Failed: ${error}`);
-
-		//whatever process is running now this process below is the reference of it through which we can exit that process
-		process.exit(1); // Exit the process with failure
+		console.warn(`Redis connection failed. Continuing without Redis cache backend: ${error?.message || error}`);
+		redisClient = null;
+		return null;
 	}
 };
 

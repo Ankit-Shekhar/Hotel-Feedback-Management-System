@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion as Motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { Card, InputField, LuxuryButton } from '../../components/ui'
 import { DashboardChart, SkeletonBlock } from '../../components/common'
@@ -204,7 +204,7 @@ function DashboardPage() {
       <div className="flex flex-col md:flex-row">
         <Sidebar />
         <Container className="flex-1 py-8">
-          <motion.section {...fadeInUp} className="mb-8 grid gap-6 rounded-[2rem] border border-gold/15 bg-secondary/90 p-6 lg:grid-cols-[0.95fr_1.05fr]">
+          <Motion.section {...fadeInUp} className="mb-8 grid gap-6 rounded-[2rem] border border-gold/15 bg-secondary/90 p-6 lg:grid-cols-[0.95fr_1.05fr]">
             <div className="space-y-3">
               <div className="inline-flex rounded-full border border-gold/25 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.35em] text-goldSoft">
                 Add hotel
@@ -285,9 +285,9 @@ function DashboardPage() {
                 </LuxuryButton>
               </div>
             </form>
-          </motion.section>
+          </Motion.section>
 
-          <motion.section {...fadeInUp} className="mb-8 grid gap-6 rounded-[2rem] border border-white/10 bg-secondary/90 p-6 lg:grid-cols-[0.95fr_1.05fr]">
+          <Motion.section {...fadeInUp} className="mb-8 grid gap-6 rounded-[2rem] border border-white/10 bg-secondary/90 p-6 lg:grid-cols-[0.95fr_1.05fr]">
             <div className="space-y-3">
               <div className="inline-flex rounded-full border border-gold/25 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.35em] text-goldSoft">
                 Edit hotel
@@ -341,9 +341,9 @@ function DashboardPage() {
                 </LuxuryButton>
               </div>
             </form>
-          </motion.section>
+          </Motion.section>
 
-          <motion.section {...fadeInUp} className="mb-8 space-y-3">
+          <Motion.section {...fadeInUp} className="mb-8 space-y-3">
             <div className="inline-flex rounded-full border border-gold/25 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.35em] text-goldSoft">
               Admin dashboard
             </div>
@@ -351,7 +351,7 @@ function DashboardPage() {
             <p className="max-w-3xl text-sm leading-7 text-ivory/70">
               Track hotel volume, feedback count, and average category ratings from a refined dashboard interface.
             </p>
-          </motion.section>
+          </Motion.section>
 
           {loading ? (
             <div className="space-y-8" aria-label="Loading dashboard content">
@@ -384,12 +384,12 @@ function DashboardPage() {
                   { label: 'Total feedbacks', value: stats?.totalFeedbacks || 0 },
                   { label: 'Average overall', value: stats?.averageRatings?.overall || 0 },
                 ].map((item) => (
-                  <motion.div key={item.label} {...hoverLift}>
+                  <Motion.div key={item.label} {...hoverLift}>
                     <Card className="h-full border-gold/10 p-5">
                       <p className="text-sm text-ivory/60">{item.label}</p>
                       <p className="mt-3 text-3xl font-semibold text-ivory">{item.value}</p>
                     </Card>
-                  </motion.div>
+                  </Motion.div>
                 ))}
               </section>
 

@@ -1,5 +1,4 @@
-import { AnimatePresence, motion } from 'framer-motion'
-import { useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion as Motion } from 'framer-motion'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { RouteLoader } from '../components/common'
 import { Footer, Navbar } from '../components/layout'
@@ -14,33 +13,14 @@ function ProtectedRoute({ children }) {
 
 function AppRoutes() {
   const location = useLocation()
-  const [isRouteLoading, setIsRouteLoading] = useState(false)
-  const previousPathRef = useRef(location.pathname)
-
-  useEffect(() => {
-    if (previousPathRef.current === location.pathname) {
-      return
-    }
-
-    previousPathRef.current = location.pathname
-    setIsRouteLoading(true)
-
-    const timeoutId = window.setTimeout(() => {
-      setIsRouteLoading(false)
-    }, 720)
-
-    return () => {
-      window.clearTimeout(timeoutId)
-    }
-  }, [location.pathname])
 
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
-      <RouteLoader isVisible={isRouteLoading} />
+      <RouteLoader isVisible={false} />
       <div className="flex-1">
         <AnimatePresence mode="wait">
-          <motion.div key={location.pathname} {...pageTransition}>
+          <Motion.div key={location.pathname} {...pageTransition}>
             <Routes location={location}>
               <Route path="/" element={<HomePage />} />
               <Route path="/feedback" element={<FeedbackPage />} />
@@ -55,7 +35,7 @@ function AppRoutes() {
               />
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </motion.div>
+          </Motion.div>
         </AnimatePresence>
       </div>
       <Footer />

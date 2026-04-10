@@ -1,6 +1,7 @@
 // where ever file upload will be required, we will inject this Middleware their, like in registration we will do, in login we will not do.
 
 import multer from "multer"
+import path from "path"
 
 // storing in diskStorage not in memoryStorage.
 const storage = multer.diskStorage({
@@ -11,9 +12,13 @@ const storage = multer.diskStorage({
         cb(null, "./public/temp")
     },
     filename: function (req, file, cb) {
+        const extension = path.extname(file.originalname)
+        const sanitizedBaseName = path
+            .basename(file.originalname, extension)
+            .replace(/[^a-zA-Z0-9-_]/g, "-")
+            .slice(0, 60)
 
-        // keep the names of the files as the user have given them , dont alter them
-        cb(null, file.originalname)
+        cb(null, `${Date.now()}-${sanitizedBaseName}${extension}`)
     }
 })
 

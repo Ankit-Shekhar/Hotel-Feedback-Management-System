@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion as Motion } from 'framer-motion'
 import { useSearchParams } from 'react-router-dom'
 import { Card, InputField, LuxuryButton, RatingStars, TextareaField } from '../../components/ui'
 import Container from '../../components/layout/Container'
@@ -12,7 +12,6 @@ function FeedbackPage() {
   const preselectedHotelId = searchParams.get('hotelId') || ''
   const { showToast } = useToast()
   const [hotels, setHotels] = useState([])
-  const [loadingHotels, setLoadingHotels] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [form, setForm] = useState({
@@ -48,10 +47,6 @@ function FeedbackPage() {
           setError(message)
           showToast({ title: 'Feedback setup failed', message, variant: 'error' })
         }
-      } finally {
-        if (active) {
-          setLoadingHotels(false)
-        }
       }
     }
 
@@ -62,7 +57,6 @@ function FeedbackPage() {
     }
   }, [preselectedHotelId, showToast])
 
-  const hotelOptions = useMemo(() => hotels, [hotels])
   const selectedHotel = useMemo(
     () => hotels.find((hotel) => hotel._id === form.hotelId) || null,
     [form.hotelId, hotels],
@@ -146,7 +140,7 @@ function FeedbackPage() {
   return (
     <main className="bg-primary text-ivory">
       <Container className="py-10 sm:py-14 lg:py-16">
-        <motion.section {...fadeInUp} className="mb-8 space-y-4">
+        <Motion.section {...fadeInUp} className="mb-8 space-y-4">
           <div className="inline-flex rounded-full border border-gold/25 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.35em] text-goldSoft">
             Guest feedback
           </div>
@@ -154,10 +148,10 @@ function FeedbackPage() {
           <p className="max-w-3xl text-base leading-7 text-ivory/70">
             Submit feedback for a selected hotel with four rating categories and a short suggestion note.
           </p>
-        </motion.section>
+        </Motion.section>
 
         <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-          <motion.aside {...hoverLift} className="space-y-4 rounded-[2rem] border border-white/10 bg-secondary/90 p-6">
+          <Motion.aside {...hoverLift} className="space-y-4 rounded-[2rem] border border-white/10 bg-secondary/90 p-6">
             <h2 className="text-2xl font-semibold text-ivory">Important notes</h2>
             <div className="space-y-3 text-sm leading-6 text-ivory/70">
               <p>Select a hotel before submitting your review.</p>
@@ -184,9 +178,9 @@ function FeedbackPage() {
             ) : null}
 
             {error ? <Card className="border-red-400/20 bg-red-500/10 p-4 text-sm text-red-100">{error}</Card> : null}
-          </motion.aside>
+          </Motion.aside>
 
-          <motion.form
+          <Motion.form
             {...fadeInUp}
             onSubmit={handleSubmit}
             className="space-y-5 rounded-[2rem] border border-gold/15 bg-secondary/95 p-6 shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
@@ -258,7 +252,7 @@ function FeedbackPage() {
                 {loading ? 'Submitting...' : 'Submit Feedback'}
               </LuxuryButton>
             </div>
-          </motion.form>
+          </Motion.form>
         </div>
       </Container>
     </main>

@@ -1,10 +1,10 @@
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion as Motion } from 'framer-motion'
 
 function RouteLoader({ isVisible }) {
   return (
     <AnimatePresence>
       {isVisible ? (
-        <motion.div
+        <Motion.div
           key="route-loader"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -16,7 +16,7 @@ function RouteLoader({ isVisible }) {
           aria-label="Loading next page"
         >
           <div className="h-[3px] w-full bg-black/20">
-            <motion.div
+            <Motion.div
               initial={{ x: '-40%' }}
               animate={{ x: '100%' }}
               exit={{ opacity: 0 }}
@@ -25,13 +25,13 @@ function RouteLoader({ isVisible }) {
             />
           </div>
 
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: [0, 1, 0] }}
             transition={{ duration: 0.72, ease: 'easeOut' }}
             className="h-[1px] w-full bg-gradient-to-r from-transparent via-gold/55 to-transparent"
           />
-        </motion.div>
+        </Motion.div>
       ) : null}
     </AnimatePresence>
   )

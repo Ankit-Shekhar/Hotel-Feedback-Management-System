@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion as Motion } from 'framer-motion'
 
 const variantClasses = {
   success: 'border-gold/45 bg-secondary text-ivory',
@@ -11,7 +11,7 @@ function ToastViewport({ toasts = [], onDismiss }) {
     <div className="pointer-events-none fixed right-4 top-24 z-[100] flex w-[min(92vw,26rem)] flex-col gap-3 sm:top-28">
       <AnimatePresence>
         {toasts.map((toast) => (
-          <motion.div
+          <Motion.div
             key={toast.id}
             initial={{ opacity: 0, y: -12, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -35,7 +35,7 @@ function ToastViewport({ toasts = [], onDismiss }) {
                 Close
               </button>
             </div>
-          </motion.div>
+          </Motion.div>
         ))}
       </AnimatePresence>
     </div>

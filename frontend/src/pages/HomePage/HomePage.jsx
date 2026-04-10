@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion as Motion } from 'framer-motion'
 import { Card, HotelCard, InputField, LuxuryButton, RatingStars, TextareaField } from '../../components/ui'
 import { HotelCardSkeleton } from '../../components/common'
 import Container from '../../components/layout/Container'
@@ -186,7 +186,7 @@ function HomePage() {
     <main className="relative overflow-hidden bg-primary text-ivory">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,175,55,0.16),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.06),transparent_24%)]" />
       <Container className="relative py-10 sm:py-14 lg:py-16">
-        <motion.section
+        <Motion.section
           {...fadeInUp}
           className="relative overflow-hidden rounded-[3rem] border border-gold/20 bg-secondary/80 shadow-[0_25px_70px_rgba(0,0,0,0.35)]"
         >
@@ -261,18 +261,18 @@ function HomePage() {
               </div>
             </div>
 
-            <motion.div {...hoverLift} className="self-end">
+            <Motion.div {...hoverLift} className="self-end">
               <div className="ml-auto max-w-md rounded-[2rem] border border-gold/20 bg-primary/40 p-6 backdrop-blur-md">
                 <p className="text-xs uppercase tracking-[0.32em] text-goldSoft">Signature Experience</p>
                 <p className="mt-3 text-sm leading-7 text-ivory/76">
                   Spacious composition, soft gold accents, and a luxurious interior backdrop that holds the page together without crowding it.
                 </p>
               </div>
-            </motion.div>
+            </Motion.div>
           </div>
-        </motion.section>
+        </Motion.section>
 
-        <motion.section {...fadeInUp} className="mt-24 grid gap-4 md:grid-cols-3">
+        <Motion.section {...fadeInUp} className="mt-24 grid gap-4 md:grid-cols-3">
           {signaturePoints.map((item) => (
             <Card key={item.title} className="border border-white/10 bg-secondary/75 p-6">
               <p className="text-xs uppercase tracking-[0.3em] text-goldSoft">Signature</p>
@@ -280,10 +280,10 @@ function HomePage() {
               <p className="mt-3 text-sm leading-7 text-ivory/70">{item.text}</p>
             </Card>
           ))}
-        </motion.section>
+        </Motion.section>
 
         {selectedHotel ? (
-          <motion.section {...fadeInUp} className="mt-24">
+          <Motion.section {...fadeInUp} className="mt-24">
             <Card className="overflow-hidden border border-gold/20 bg-secondary/90 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.28)]">
               <div className="grid gap-0 lg:grid-cols-[0.95fr_1.05fr]">
                 <div className="relative min-h-[360px] overflow-hidden rounded-[1.8rem]">
@@ -360,10 +360,10 @@ function HomePage() {
                 </div>
               </div>
             </Card>
-          </motion.section>
+          </Motion.section>
         ) : null}
 
-        <motion.section {...fadeInUp} className="mt-24 grid gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
+        <Motion.section {...fadeInUp} className="mt-24 grid gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
           <Card className="overflow-hidden border border-gold/20 bg-secondary/90 p-5">
             <div className="rounded-[1.5rem] border border-white/10 bg-primary/60 p-4">
               <img
@@ -396,9 +396,9 @@ function HomePage() {
               ))}
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
-        <motion.section {...fadeInUp} className="mt-24 space-y-5">
+        <Motion.section {...fadeInUp} className="mt-24 space-y-5">
           <div className="flex items-end justify-between gap-4">
             <div>
               <h2 className="text-2xl font-semibold text-ivory">Available hotels</h2>
@@ -449,7 +449,7 @@ function HomePage() {
               ))}
             </div>
           )}
-        </motion.section>
+        </Motion.section>
 
         <motion.section {...fadeInUp} className="mt-24 space-y-6">
           <div className="flex items-end justify-between gap-4">

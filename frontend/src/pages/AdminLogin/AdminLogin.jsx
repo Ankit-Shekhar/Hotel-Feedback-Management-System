@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion as Motion } from 'framer-motion'
 import { Card, InputField, LuxuryButton } from '../../components/ui'
 import Container from '../../components/layout/Container'
 import { useToast } from '../../context/useToast'
@@ -44,7 +44,7 @@ function AdminLogin() {
   return (
     <main className="bg-primary text-ivory">
       <Container className="flex min-h-[calc(100vh-132px)] items-center justify-center py-10">
-        <motion.div {...fadeInUp} className="w-full max-w-md">
+        <Motion.div {...fadeInUp} className="w-full max-w-md">
           <Card className="border-gold/20 bg-secondary/95 p-6">
             <div className="mb-6 space-y-2 text-center">
               <div className="inline-flex rounded-full border border-gold/25 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.35em] text-goldSoft">
@@ -80,7 +80,7 @@ function AdminLogin() {
               </LuxuryButton>
             </form>
           </Card>
-        </motion.div>
+        </Motion.div>
       </Container>
     </main>
   )
