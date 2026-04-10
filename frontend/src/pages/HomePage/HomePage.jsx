@@ -417,7 +417,9 @@ function HomePage() {
               <h2 className="text-2xl font-semibold text-ivory">Available hotels</h2>
               <p className="text-sm text-ivory/60">Top 3 hotels by average overall rating.</p>
             </div>
-            <p className="text-sm text-ivory/60">{topRatedHotels.length} result(s)</p>
+            <Link to="/hotels" className="text-sm font-semibold text-goldSoft transition hover:text-gold">
+              View all
+            </Link>
           </div>
 
           {loading ? (

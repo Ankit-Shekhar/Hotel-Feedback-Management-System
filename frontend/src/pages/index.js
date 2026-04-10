@@ -1,4 +1,5 @@
 export { default as HomePage } from './HomePage'
+export { default as HotelsPage } from './HotelsPage'
 export { default as FeedbackPage } from './FeedbackPage'
 export { default as AdminLogin } from './AdminLogin'
 export { default as DashboardPage } from './DashboardPage'
