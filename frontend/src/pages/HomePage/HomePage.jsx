@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion as Motion } from 'framer-motion'
 import { Card, HotelCard, InputField, LuxuryButton, RatingStars, TextareaField } from '../../components/ui'
-import { HotelCardSkeleton } from '../../components/common'
+import { FetchingNotice, HotelCardSkeleton } from '../../components/common'
 import Container from '../../components/layout/Container'
 import { useToast } from '../../context/useToast'
 import { getHotels, submitFeedback } from '../../services'
@@ -10,7 +10,8 @@ import { fadeInUp, hoverLift } from '../../utils/motion'
 
 const createReviewForm = () => ({
   userName: '',
-  contact: '',
+  email: '',
+  contactNumber: '',
   suggestion: '',
   ratings: {
     overall: 0,
@@ -21,6 +22,7 @@ const createReviewForm = () => ({
 })
 
 function HomePage() {
+  const navigate = useNavigate()
   const { showToast } = useToast()
   const [hotels, setHotels] = useState([])
   const [loading, setLoading] = useState(true)
@@ -31,51 +33,25 @@ function HomePage() {
   const heroImage = '/background.jfif'
   const galleryImages = ['/below1.jfif', '/below2.jfif', '/below3.jfif']
   const galleryCaptions = ['Subtle', 'Spacious', 'Premium']
-  const signaturePoints = [
-    {
-      title: 'Signature curation',
-      text: 'A focused landing rhythm that gives the background image enough room to feel premium and editorial.',
-    },
-    {
-      title: 'Soft gold accents',
-      text: 'Buttons and labels use a restrained biscuit-gold tone so the accents feel elegant rather than loud.',
-    },
-    {
-      title: 'Visual hierarchy',
-      text: 'The page flows from hero to gallery to listings, keeping the composition long, calm, and uncluttered.',
-    },
-  ]
 
   useEffect(() => {
     let active = true
+    let retryTimeoutId
 
     const loadHotels = async () => {
-      const loadStart = Date.now()
-
       try {
         setLoading(true)
-        setError('')
         const result = await getHotels()
         if (active) {
           setHotels(result)
+          setError('')
+          setLoading(false)
         }
       } catch (err) {
         if (active) {
           const message = err?.response?.data?.message || 'Unable to load hotels right now.'
           setError(message)
-          showToast({ title: 'Home data failed', message, variant: 'error' })
-        }
-      } finally {
-        const elapsed = Date.now() - loadStart
-        const minimumLoaderMs = 700
-        if (elapsed < minimumLoaderMs) {
-          await new Promise((resolve) => {
-            window.setTimeout(resolve, minimumLoaderMs - elapsed)
-          })
-        }
-
-        if (active) {
-          setLoading(false)
+          retryTimeoutId = window.setTimeout(loadHotels, 4500)
         }
       }
     }
@@ -84,8 +60,11 @@ function HomePage() {
 
     return () => {
       active = false
+      if (retryTimeoutId) {
+        window.clearTimeout(retryTimeoutId)
+      }
     }
-  }, [showToast])
+  }, [])
 
   const filteredHotels = useMemo(() => {
     const query = search.trim().toLowerCase()
@@ -162,7 +141,8 @@ function HomePage() {
       await submitFeedback({
         hotelId: selectedHotel._id,
         userName: reviewForm.userName,
-        contact: reviewForm.contact,
+        email: reviewForm.email,
+        contactNumber: reviewForm.contactNumber,
         suggestion: reviewForm.suggestion,
         ratings: reviewForm.ratings,
       })
@@ -180,6 +160,26 @@ function HomePage() {
     } finally {
       setReviewLoading(false)
     }
+  }
+
+  const handleLeaveFeedbackSearch = () => {
+    const query = search.trim().toLowerCase()
+
+    const matchedHotel =
+      hotels.find((hotel) => hotel?.name?.trim().toLowerCase() === query) ||
+      filteredHotels[0] ||
+      null
+
+    if (!matchedHotel?._id && !matchedHotel?.id) {
+      showToast({
+        title: 'Hotel not found',
+        message: 'Please search for a valid hotel name first.',
+        variant: 'error',
+      })
+      return
+    }
+
+    navigate(`/feedback?hotelId=${matchedHotel._id || matchedHotel.id}`)
   }
 
   return (
@@ -236,7 +236,7 @@ function HomePage() {
                     aria-label="Search hotels"
                   />
                 </div>
-                <LuxuryButton as={Link} to="/feedback" className="sm:min-w-44">
+                <LuxuryButton type="button" onClick={handleLeaveFeedbackSearch} className="sm:min-w-44">
                   Leave Feedback
                 </LuxuryButton>
               </div>
@@ -273,26 +273,26 @@ function HomePage() {
                 ))}
               </div>
             </div>
-
-            <Motion.div {...hoverLift} className="self-end">
-              <div className="ml-auto max-w-md rounded-[2rem] border border-gold/20 bg-primary/40 p-6 backdrop-blur-md">
-                <p className="text-xs uppercase tracking-[0.32em] text-goldSoft">Signature Experience</p>
-                <p className="mt-3 text-sm leading-7 text-ivory/76">
-                  Spacious composition, soft gold accents, and a luxurious interior backdrop that holds the page together without crowding it.
-                </p>
-              </div>
-            </Motion.div>
           </div>
         </Motion.section>
 
-        <Motion.section {...fadeInUp} className="mt-24 grid gap-4 md:grid-cols-3">
-          {signaturePoints.map((item) => (
-            <Card key={item.title} className="border border-white/10 bg-secondary/75 p-6">
-              <p className="text-xs uppercase tracking-[0.3em] text-goldSoft">Signature</p>
-              <h2 className="mt-3 text-2xl font-semibold text-ivory">{item.title}</h2>
-              <p className="mt-3 text-sm leading-7 text-ivory/70">{item.text}</p>
-            </Card>
-          ))}
+        <Motion.section {...fadeInUp} className="mt-8">
+          <Card className="flex flex-col gap-4 border border-gold/20 bg-secondary/88 p-6 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-2">
+              <p className="text-xs uppercase tracking-[0.32em] text-goldSoft">Admin Access</p>
+              <h2 className="text-2xl font-semibold text-ivory">Manage hotels and monitor guest sentiment.</h2>
+              <p className="max-w-2xl text-sm leading-7 text-ivory/70">
+                Login as admin to add or edit hotels, monitor recent feedback, and view rating analytics across all hospitality categories.
+              </p>
+            </div>
+            <LuxuryButton
+              as={Link}
+              to="/admin-login"
+              className="animate-[pulse_1.8s_ease-in-out_infinite] whitespace-nowrap"
+            >
+              Login as Admin
+            </LuxuryButton>
+          </Card>
         </Motion.section>
 
         {selectedHotel ? (
@@ -333,10 +333,20 @@ function HomePage() {
                         required
                       />
                       <InputField
-                        label="Contact"
-                        value={reviewForm.contact}
-                        onChange={(event) => updateReviewField('contact', event.target.value)}
-                        placeholder="Phone or email"
+                        label="Email (optional)"
+                        type="email"
+                        value={reviewForm.email}
+                        onChange={(event) => updateReviewField('email', event.target.value)}
+                        placeholder="guest@example.com"
+                      />
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <InputField
+                        label="Contact number"
+                        value={reviewForm.contactNumber}
+                        onChange={(event) => updateReviewField('contactNumber', event.target.value)}
+                        placeholder="Phone number"
                         required
                       />
                     </div>
@@ -422,46 +432,49 @@ function HomePage() {
             </Link>
           </div>
 
-          {loading ? (
-            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3" aria-label="Loading hotel cards">
-              {Array.from({ length: 6 }).map((_, index) => (
-                <HotelCardSkeleton key={`hotel-skeleton-${index}`} />
-              ))}
-            </div>
-          ) : error ? (
-            <Card className="border border-red-400/20 bg-red-500/10 p-6 text-red-100">{error}</Card>
-          ) : topRatedHotels.length === 0 ? (
-            <Card className="space-y-4 p-7 text-center">
-              <p className="text-xl font-semibold text-ivory">No hotels available yet.</p>
-              <p className="text-sm leading-7 text-ivory/65">
-                Ask admin to add hotels first so guests can start submitting reviews.
-              </p>
-              <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <LuxuryButton type="button" onClick={() => setSearch('')}>
-                  Clear Search
-                </LuxuryButton>
-                <LuxuryButton as={Link} to="/feedback" className="border border-gold/30 bg-transparent text-gold hover:text-primary">
-                  Go to Feedback
-                </LuxuryButton>
+          {loading || error ? (
+            <div className="space-y-4">
+              <FetchingNotice message="The data is being fetched, kindly wait." />
+              <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3" aria-label="Loading hotel cards">
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <HotelCardSkeleton key={`hotel-skeleton-${index}`} />
+                ))}
               </div>
-            </Card>
+            </div>
           ) : (
-            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-              {topRatedHotels.map((hotel) => (
-                <Motion.div key={hotel._id || hotel.id || hotel.name} {...hoverLift}>
-                  <Link to={`/feedback?hotelId=${hotel._id || hotel.id}`} className="block">
-                    <HotelCard
-                      hotel={{
-                        name: hotel.name,
-                        location: [hotel.city, hotel.state].filter(Boolean).join(', '),
-                        rating: hotel.ratingsSummary?.overall || 0,
-                        photoUrl: hotel.photoUrl,
-                        description: `Total reviews: ${hotel.totalReviews || 0}`,
-                      }}
-                    />
-                  </Link>
-                </Motion.div>
-              ))}
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3" aria-label="Loading hotel cards">
+              {topRatedHotels.length === 0 ? (
+                <Card className="col-span-full space-y-4 p-7 text-center">
+                  <p className="text-xl font-semibold text-ivory">No hotels available yet.</p>
+                  <p className="text-sm leading-7 text-ivory/65">
+                    Ask admin to add hotels first so guests can start submitting reviews.
+                  </p>
+                  <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+                    <LuxuryButton type="button" onClick={() => setSearch('')}>
+                      Clear Search
+                    </LuxuryButton>
+                    <LuxuryButton as={Link} to="/feedback" className="border border-gold/30 bg-transparent text-gold hover:text-primary">
+                      Go to Feedback
+                    </LuxuryButton>
+                  </div>
+                </Card>
+              ) : (
+                topRatedHotels.map((hotel) => (
+                  <Motion.div key={hotel._id || hotel.id || hotel.name} {...hoverLift}>
+                    <Link to={`/feedback?hotelId=${hotel._id || hotel.id}`} className="block">
+                      <HotelCard
+                        hotel={{
+                          name: hotel.name,
+                          location: [hotel.city, hotel.state].filter(Boolean).join(', '),
+                          rating: hotel.ratingsSummary?.overall || 0,
+                          photoUrl: hotel.photoUrl,
+                          description: `Total reviews: ${hotel.totalReviews || 0}`,
+                        }}
+                      />
+                    </Link>
+                  </Motion.div>
+                ))
+              )}
             </div>
           )}
         </Motion.section>

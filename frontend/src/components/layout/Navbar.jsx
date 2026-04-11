@@ -11,10 +11,10 @@ function Navbar() {
             <ReviewHeavenLogo />
           </Link>
           <Link
-            to="/feedback"
+            to="/admin-login"
             className="rounded-full border border-gold/40 bg-gold/15 px-4 py-2 text-sm font-semibold text-goldSoft transition hover:bg-gold hover:text-primary"
           >
-            Give Feedback
+            Admin Login
           </Link>
         </div>
       </Container>

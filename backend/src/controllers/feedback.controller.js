@@ -14,7 +14,9 @@ const calculateAverageRating = (feedbacks, fieldName) => {
 
 // Submit feedback with 30-day rule
 const submitFeedback = asyncHandler(async (req, res) => {
-    const { hotelId, userName, contact, ratings, suggestion } = req.body;
+    const { hotelId, userName, email, contactNumber, ratings, suggestion } = req.body;
+    const normalizedContactNumber = String(contactNumber || "").trim();
+    const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
 
     // Validation: Check all required fields
     if (!hotelId || !hotelId.trim()) {
@@ -25,8 +27,15 @@ const submitFeedback = asyncHandler(async (req, res) => {
         throw new ApiError(400, "User name is required");
     }
 
-    if (!contact || !contact.trim()) {
-        throw new ApiError(400, "Contact is required");
+    if (!normalizedContactNumber) {
+        throw new ApiError(400, "Contact number is required");
+    }
+
+    if (normalizedEmail) {
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(normalizedEmail)) {
+            throw new ApiError(400, "Email format is invalid");
+        }
     }
 
     if (!ratings || typeof ratings !== 'object') {
@@ -62,7 +71,13 @@ const submitFeedback = asyncHandler(async (req, res) => {
     }
 
     // STEP 2: Find latest feedback by hotelId and contact
-    const existing = await Feedback.findOne({ hotelId, contact }).sort({ createdAt: -1 });
+    const existing = await Feedback.findOne({
+        hotelId,
+        $or: [
+            { contactNumber: normalizedContactNumber },
+            { contact: normalizedContactNumber }
+        ]
+    }).sort({ createdAt: -1 });
 
     let feedback;
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
@@ -78,6 +93,9 @@ const submitFeedback = asyncHandler(async (req, res) => {
                 ambience: ratings.ambience
             };
             existing.suggestion = suggestion;
+            existing.email = normalizedEmail || null;
+            existing.contactNumber = normalizedContactNumber;
+            existing.contact = normalizedContactNumber;
             existing.updatedAt = new Date();
             await existing.save();
             feedback = existing;
@@ -86,7 +104,9 @@ const submitFeedback = asyncHandler(async (req, res) => {
             feedback = await Feedback.create({
                 hotelId,
                 userName: userName.trim(),
-                contact: contact.trim(),
+                email: normalizedEmail || null,
+                contactNumber: normalizedContactNumber,
+                contact: normalizedContactNumber,
                 ratings: {
                     overall: ratings.overall,
                     food: ratings.food,
@@ -101,7 +121,9 @@ const submitFeedback = asyncHandler(async (req, res) => {
         feedback = await Feedback.create({
             hotelId,
             userName: userName.trim(),
-            contact: contact.trim(),
+            email: normalizedEmail || null,
+            contactNumber: normalizedContactNumber,
+            contact: normalizedContactNumber,
             ratings: {
                 overall: ratings.overall,
                 food: ratings.food,

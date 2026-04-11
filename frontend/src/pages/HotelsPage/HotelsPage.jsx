@@ -2,39 +2,35 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion as Motion } from 'framer-motion'
 import { Card, HotelCard, LuxuryButton } from '../../components/ui'
-import { HotelCardSkeleton } from '../../components/common'
+import { FetchingNotice, HotelCardSkeleton } from '../../components/common'
 import Container from '../../components/layout/Container'
-import { useToast } from '../../context/useToast'
 import { getHotels } from '../../services'
 import { fadeInUp, hoverLift } from '../../utils/motion'
 
 function HotelsPage() {
-  const { showToast } = useToast()
   const [hotels, setHotels] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
     let active = true
+    let retryTimeoutId
 
     const loadHotels = async () => {
       try {
         setLoading(true)
-        setError('')
         const result = await getHotels()
 
         if (active) {
           setHotels(result)
+          setError('')
+          setLoading(false)
         }
       } catch (err) {
         if (active) {
           const message = err?.response?.data?.message || 'Unable to load hotels right now.'
           setError(message)
-          showToast({ title: 'Hotels load failed', message, variant: 'error' })
-        }
-      } finally {
-        if (active) {
-          setLoading(false)
+          retryTimeoutId = window.setTimeout(loadHotels, 4500)
         }
       }
     }
@@ -43,8 +39,11 @@ function HotelsPage() {
 
     return () => {
       active = false
+      if (retryTimeoutId) {
+        window.clearTimeout(retryTimeoutId)
+      }
     }
-  }, [showToast])
+  }, [])
 
   return (
     <main className="bg-primary text-ivory">
@@ -64,14 +63,15 @@ function HotelsPage() {
           </div>
         </Motion.section>
 
-        {loading ? (
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3" aria-label="Loading hotel cards">
-            {Array.from({ length: 6 }).map((_, index) => (
-              <HotelCardSkeleton key={`all-hotels-skeleton-${index}`} />
-            ))}
+        {loading || error ? (
+          <div className="space-y-4">
+            <FetchingNotice message="The data is being fetched, kindly wait." />
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3" aria-label="Loading hotel cards">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <HotelCardSkeleton key={`all-hotels-skeleton-${index}`} />
+              ))}
+            </div>
           </div>
-        ) : error ? (
-          <Card className="border border-red-400/20 bg-red-500/10 p-6 text-red-100">{error}</Card>
         ) : hotels.length === 0 ? (
           <Card className="space-y-4 p-7 text-center">
             <p className="text-xl font-semibold text-ivory">No hotels available yet.</p>

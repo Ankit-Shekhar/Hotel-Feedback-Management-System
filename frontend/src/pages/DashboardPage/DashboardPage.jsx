@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { motion as Motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { Card, InputField, LuxuryButton } from '../../components/ui'
-import { DashboardChart, SkeletonBlock } from '../../components/common'
+import { DashboardChart, FetchingNotice, SkeletonBlock } from '../../components/common'
 import { Sidebar, Container } from '../../components/layout'
 import { useToast } from '../../context/useToast'
 import { addHotel, getDashboardStats, getHotels, getRecentFeedbacks, updateHotel } from '../../services'
@@ -29,13 +29,11 @@ function DashboardPage() {
 
   useEffect(() => {
     let active = true
+    let retryTimeoutId
 
     const loadDashboard = async () => {
-      const loadStart = Date.now()
-
       try {
         setLoading(true)
-        setError('')
 
         const [statsResult, recentResult, hotelsResult] = await Promise.all([
           getDashboardStats(),
@@ -47,24 +45,14 @@ function DashboardPage() {
           setStats(statsResult)
           setRecentFeedbacks(recentResult)
           setHotels(hotelsResult)
+          setError('')
+          setLoading(false)
         }
       } catch (err) {
         if (active) {
           const message = err?.response?.data?.message || 'Unable to load dashboard data.'
           setError(message)
-          showToast({ title: 'Dashboard load failed', message, variant: 'error' })
-        }
-      } finally {
-        const elapsed = Date.now() - loadStart
-        const minimumLoaderMs = 700
-        if (elapsed < minimumLoaderMs) {
-          await new Promise((resolve) => {
-            window.setTimeout(resolve, minimumLoaderMs - elapsed)
-          })
-        }
-
-        if (active) {
-          setLoading(false)
+          retryTimeoutId = window.setTimeout(loadDashboard, 4500)
         }
       }
     }
@@ -73,8 +61,11 @@ function DashboardPage() {
 
     return () => {
       active = false
+      if (retryTimeoutId) {
+        window.clearTimeout(retryTimeoutId)
+      }
     }
-  }, [showToast])
+  }, [])
 
   useEffect(() => {
     return () => {
@@ -354,8 +345,9 @@ function DashboardPage() {
             </p>
           </Motion.section>
 
-          {loading ? (
+          {loading || error ? (
             <div className="space-y-8" aria-label="Loading dashboard content">
+              <FetchingNotice message="The data is being fetched, kindly wait." />
               <section className="grid gap-4 md:grid-cols-3">
                 {Array.from({ length: 3 }).map((_, index) => (
                   <Card key={`dash-stat-skeleton-${index}`} className="space-y-3 p-5">
@@ -375,8 +367,6 @@ function DashboardPage() {
                 ))}
               </Card>
             </div>
-          ) : error ? (
-            <Card className="border-red-400/20 bg-red-500/10 p-4 text-red-100">{error}</Card>
           ) : (
             <div className="space-y-8">
               <section className="grid gap-4 md:grid-cols-3">
@@ -428,6 +418,8 @@ function DashboardPage() {
                               <p className="text-sm text-ivory/60">
                                 {feedback.hotelId?.name || 'Hotel'} · {feedback.hotelId?.city || ''} {feedback.hotelId?.state || ''}
                               </p>
+                              <p className="text-sm text-ivory/60">Email: {feedback.email || 'Not provided'}</p>
+                              <p className="text-sm text-ivory/60">Contact: {feedback.contactNumber || feedback.contact || 'Not provided'}</p>
                             </div>
                             <p className="max-w-3xl text-sm leading-7 text-ivory/70">{feedback.suggestion}</p>
                           </div>

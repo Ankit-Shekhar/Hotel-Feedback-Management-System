@@ -13,9 +13,21 @@ const feedbackSchema = new Schema(
 			required: true,
 			trim: true
 		},
-		contact: {
+		email: {
+			type: String,
+			trim: true,
+			lowercase: true,
+			default: null
+		},
+		contactNumber: {
 			type: String,
 			required: true,
+			trim: true,
+			index: true
+		},
+		contact: {
+			type: String,
+			required: false,
 			index: true
 		},
 		ratings: {

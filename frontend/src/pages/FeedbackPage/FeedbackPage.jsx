@@ -3,21 +3,22 @@ import { motion as Motion } from 'framer-motion'
 import { useSearchParams } from 'react-router-dom'
 import { Card, InputField, LuxuryButton, RatingStars, TextareaField } from '../../components/ui'
 import Container from '../../components/layout/Container'
-import { useToast } from '../../context/useToast'
+import { FetchingNotice, SkeletonBlock } from '../../components/common'
 import { getHotels, submitFeedback } from '../../services'
 import { fadeInUp, hoverLift } from '../../utils/motion'
 
 function FeedbackPage() {
   const [searchParams] = useSearchParams()
   const preselectedHotelId = searchParams.get('hotelId') || ''
-  const { showToast } = useToast()
   const [hotels, setHotels] = useState([])
+  const [loadingHotels, setLoadingHotels] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [form, setForm] = useState({
     hotelId: '',
     userName: '',
-    contact: '',
+    email: '',
+    contactNumber: '',
     suggestion: '',
     ratings: {
       overall: 0,
@@ -29,12 +30,16 @@ function FeedbackPage() {
 
   useEffect(() => {
     let active = true
+    let retryTimeoutId
 
     const loadHotels = async () => {
       try {
+        setLoadingHotels(true)
         const result = await getHotels()
         if (active) {
           setHotels(result)
+          setError('')
+          setLoadingHotels(false)
           const hasPreselectedHotel = preselectedHotelId && result.some((hotel) => hotel._id === preselectedHotelId)
           setForm((current) => ({
             ...current,
@@ -45,7 +50,7 @@ function FeedbackPage() {
         if (active) {
           const message = err?.response?.data?.message || 'Unable to load hotels for feedback.'
           setError(message)
-          showToast({ title: 'Feedback setup failed', message, variant: 'error' })
+          retryTimeoutId = window.setTimeout(loadHotels, 4500)
         }
       }
     }
@@ -54,8 +59,11 @@ function FeedbackPage() {
 
     return () => {
       active = false
+      if (retryTimeoutId) {
+        window.clearTimeout(retryTimeoutId)
+      }
     }
-  }, [preselectedHotelId, showToast])
+  }, [preselectedHotelId])
 
   const selectedHotel = useMemo(
     () => hotels.find((hotel) => hotel._id === form.hotelId) || null,
@@ -65,7 +73,7 @@ function FeedbackPage() {
   const canSubmit = Boolean(
     form.hotelId &&
       form.userName.trim() &&
-      form.contact.trim() &&
+      form.contactNumber.trim() &&
       form.suggestion.trim() &&
       ratingsComplete,
   )
@@ -95,7 +103,6 @@ function FeedbackPage() {
     if (!ratingsComplete) {
       const message = 'Please provide ratings from 1 to 5 for all four categories before submitting.'
       setError(message)
-      showToast({ title: 'Validation error', message, variant: 'error' })
       return
     }
 
@@ -106,20 +113,16 @@ function FeedbackPage() {
       await submitFeedback({
         hotelId: form.hotelId,
         userName: form.userName,
-        contact: form.contact,
+        email: form.email,
+        contactNumber: form.contactNumber,
         ratings: form.ratings,
         suggestion: form.suggestion,
-      })
-
-      showToast({
-        title: 'Feedback submitted',
-        message: 'Submitted successfully. If you submit again within 30 days, your latest entry is updated.',
-        variant: 'success',
       })
       setForm((current) => ({
         ...current,
         userName: '',
-        contact: '',
+        email: '',
+        contactNumber: '',
         suggestion: '',
         ratings: {
           overall: 0,
@@ -131,7 +134,6 @@ function FeedbackPage() {
     } catch (err) {
       const message = err?.response?.data?.message || 'Unable to submit feedback at the moment.'
       setError(message)
-      showToast({ title: 'Submission failed', message, variant: 'error' })
     } finally {
       setLoading(false)
     }
@@ -159,23 +161,24 @@ function FeedbackPage() {
                 The same guest can update a recent submission within 30 days. After that, a new feedback entry is created.
               </p>
               <p>All four rating categories are required: overall, food, service, and ambience.</p>
+              <p>Here, 1 star = poor and 5 star = excellent.</p>
             </div>
 
-            {selectedHotel?.photoUrl ? (
-              <Card className="overflow-hidden border border-white/10 bg-primary/40 p-3">
-                <img
-                  src={selectedHotel.photoUrl}
-                  alt={selectedHotel.name}
-                  className="h-44 w-full rounded-2xl object-cover"
-                />
+            <Card className="overflow-hidden border border-white/10 bg-primary/40 p-3">
+              <img
+                src="/barNshm.png"
+                alt="Review Heaven preview"
+                className="h-44 w-full rounded-2xl object-cover"
+              />
+              {selectedHotel ? (
                 <div className="mt-3 text-sm text-ivory/75">
                   <p className="font-semibold text-ivory">{selectedHotel.name}</p>
                   <p className="text-xs text-ivory/60">
                     {selectedHotel.city}, {selectedHotel.state}
                   </p>
                 </div>
-              </Card>
-            ) : null}
+              ) : null}
+            </Card>
 
             {error ? <Card className="border-red-400/20 bg-red-500/10 p-4 text-sm text-red-100">{error}</Card> : null}
           </Motion.aside>
@@ -194,10 +197,20 @@ function FeedbackPage() {
                 required
               />
               <InputField
-                label="Contact"
-                value={form.contact}
-                onChange={(event) => updateField('contact', event.target.value)}
-                placeholder="Phone or email"
+                label="Email (optional)"
+                type="email"
+                value={form.email}
+                onChange={(event) => updateField('email', event.target.value)}
+                placeholder="guest@example.com"
+              />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <InputField
+                label="Contact number"
+                value={form.contactNumber}
+                onChange={(event) => updateField('contactNumber', event.target.value)}
+                placeholder="Phone number"
                 required
               />
             </div>
@@ -221,6 +234,16 @@ function FeedbackPage() {
                 ))}
               </select>
             </label>
+
+            {loadingHotels || error ? (
+              <div className="space-y-3">
+                <FetchingNotice message="The data is being fetched, kindly wait." />
+                <div className="grid gap-2">
+                  <SkeletonBlock className="h-12 w-full" />
+                  <SkeletonBlock className="h-12 w-full" />
+                </div>
+              </div>
+            ) : null}
 
             <div className="grid gap-4 rounded-3xl border border-white/10 bg-white/5 p-4 sm:grid-cols-2">
               {[

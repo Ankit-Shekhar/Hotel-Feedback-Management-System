@@ -8,7 +8,7 @@ import { ApiError } from "../utils/ApiErrors.js";
 // - contact must exist
 export const validateFeedback = (req, res, next) => {
     try {
-        const { hotelId, userName, contact, ratings, suggestion } = req.body;
+        const { hotelId, userName, email, contactNumber, ratings, suggestion } = req.body;
 
         // Check if ratings object exists
         if (!ratings || typeof ratings !== "object") {
@@ -34,9 +34,20 @@ export const validateFeedback = (req, res, next) => {
             throw new ApiError(400, "All ratings must be between 1 and 5");
         }
 
-        // Check contact exists
-        if (!contact || !contact.trim()) {
-            throw new ApiError(400, "Contact is required");
+        // Check contact number exists
+        if (!contactNumber || !String(contactNumber).trim()) {
+            throw new ApiError(400, "Contact number is required");
+        }
+
+        if (email && typeof email !== "string") {
+            throw new ApiError(400, "Email must be a valid string");
+        }
+
+        if (email && email.trim()) {
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailPattern.test(email.trim())) {
+                throw new ApiError(400, "Email format is invalid");
+            }
         }
 
         // Check suggestion exists
