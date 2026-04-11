@@ -4,16 +4,19 @@ import { useSearchParams } from 'react-router-dom'
 import { Card, InputField, LuxuryButton, RatingStars, TextareaField } from '../../components/ui'
 import Container from '../../components/layout/Container'
 import { FetchingNotice, SkeletonBlock } from '../../components/common'
+import { useToast } from '../../context/useToast'
 import { getHotels, submitFeedback } from '../../services'
 import { fadeInUp, hoverLift } from '../../utils/motion'
 
 function FeedbackPage() {
   const [searchParams] = useSearchParams()
   const preselectedHotelId = searchParams.get('hotelId') || ''
+  const { showToast } = useToast()
   const [hotels, setHotels] = useState([])
   const [loadingHotels, setLoadingHotels] = useState(true)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [fetchError, setFetchError] = useState('')
+  const [submitError, setSubmitError] = useState('')
   const [form, setForm] = useState({
     hotelId: '',
     userName: '',
@@ -38,7 +41,7 @@ function FeedbackPage() {
         const result = await getHotels()
         if (active) {
           setHotels(result)
-          setError('')
+          setFetchError('')
           setLoadingHotels(false)
           const hasPreselectedHotel = preselectedHotelId && result.some((hotel) => hotel._id === preselectedHotelId)
           setForm((current) => ({
@@ -49,7 +52,7 @@ function FeedbackPage() {
       } catch (err) {
         if (active) {
           const message = err?.response?.data?.message || 'Unable to load hotels for feedback.'
-          setError(message)
+          setFetchError(message)
           retryTimeoutId = window.setTimeout(loadHotels, 4500)
         }
       }
@@ -102,12 +105,13 @@ function FeedbackPage() {
 
     if (!ratingsComplete) {
       const message = 'Please provide ratings from 1 to 5 for all four categories before submitting.'
-      setError(message)
+      setSubmitError(message)
+      showToast({ title: 'Validation error', message, variant: 'error' })
       return
     }
 
     setLoading(true)
-    setError('')
+    setSubmitError('')
 
     try {
       await submitFeedback({
@@ -115,9 +119,17 @@ function FeedbackPage() {
         userName: form.userName,
         email: form.email,
         contactNumber: form.contactNumber,
+        contact: form.contactNumber,
         ratings: form.ratings,
         suggestion: form.suggestion,
       })
+
+      showToast({
+        title: 'Feedback submitted',
+        message: 'Submitted successfully. If you submit again within 30 days, your latest entry is updated.',
+        variant: 'success',
+      })
+
       setForm((current) => ({
         ...current,
         userName: '',
@@ -133,7 +145,8 @@ function FeedbackPage() {
       }))
     } catch (err) {
       const message = err?.response?.data?.message || 'Unable to submit feedback at the moment.'
-      setError(message)
+      setSubmitError(message)
+      showToast({ title: 'Submission failed', message, variant: 'error' })
     } finally {
       setLoading(false)
     }
@@ -180,7 +193,7 @@ function FeedbackPage() {
               ) : null}
             </Card>
 
-            {error ? <Card className="border-red-400/20 bg-red-500/10 p-4 text-sm text-red-100">{error}</Card> : null}
+            {submitError ? <Card className="border-red-400/20 bg-red-500/10 p-4 text-sm text-red-100">{submitError}</Card> : null}
           </Motion.aside>
 
           <Motion.form
@@ -235,7 +248,7 @@ function FeedbackPage() {
               </select>
             </label>
 
-            {loadingHotels || error ? (
+            {loadingHotels || fetchError ? (
               <div className="space-y-3">
                 <FetchingNotice message="The data is being fetched, kindly wait." />
                 <div className="grid gap-2">

@@ -143,6 +143,7 @@ function HomePage() {
         userName: reviewForm.userName,
         email: reviewForm.email,
         contactNumber: reviewForm.contactNumber,
+        contact: reviewForm.contactNumber,
         suggestion: reviewForm.suggestion,
         ratings: reviewForm.ratings,
       })
@@ -277,7 +278,8 @@ function HomePage() {
         </Motion.section>
 
         <Motion.section {...fadeInUp} className="mt-8">
-          <Card className="flex flex-col gap-4 border border-gold/20 bg-secondary/88 p-6 md:flex-row md:items-center md:justify-between">
+          <Card className="group relative overflow-hidden flex flex-col gap-4 border border-gold/45 bg-secondary/90 p-6 shadow-[0_12px_34px_rgba(201,165,90,0.16)] transition duration-300 hover:-translate-y-0.5 hover:border-gold/65 hover:shadow-[0_18px_44px_rgba(201,165,90,0.24)] md:flex-row md:items-center md:justify-between">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,175,55,0.14),transparent_32%)] opacity-80 transition duration-300 group-hover:opacity-100" />
             <div className="space-y-2">
               <p className="text-xs uppercase tracking-[0.32em] text-goldSoft">Admin Access</p>
               <h2 className="text-2xl font-semibold text-ivory">Manage hotels and monitor guest sentiment.</h2>
@@ -288,7 +290,7 @@ function HomePage() {
             <LuxuryButton
               as={Link}
               to="/admin-login"
-              className="animate-[pulse_1.8s_ease-in-out_infinite] whitespace-nowrap"
+              className="relative animate-[pulse_1.8s_ease-in-out_infinite] whitespace-nowrap"
             >
               Login as Admin
             </LuxuryButton>
