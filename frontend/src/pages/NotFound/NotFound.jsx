@@ -13,7 +13,7 @@ function NotFound() {
           <p className="text-xs uppercase tracking-[0.35em] text-goldSoft">Page not found</p>
           <h1 className="mt-4 text-6xl font-semibold text-ivory sm:text-7xl">404</h1>
           <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-ivory/70 sm:text-base">
-            The page you requested does not exist or may have been moved. Continue with the main hotel experience.
+            The page you requested does not exist or may have been moved. Continue with the main Rendezvous experience.
           </p>
           <div className="mt-8">
             <LuxuryButton as={Link} to="/">

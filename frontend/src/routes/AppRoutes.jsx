@@ -3,7 +3,7 @@ import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { RouteLoader } from '../components/common'
 import { Footer, Navbar } from '../components/layout'
 import { useAuth } from '../context/useAuth'
-import { AdminLogin, DashboardPage, FeedbackPage, HomePage, HotelsPage, NotFound } from '../pages'
+import { AdminLogin, DashboardPage, FeedbackPage, HomePage, NotFound } from '../pages'
 import { pageTransition } from '../utils/motion'
 
 function ProtectedRoute({ children }) {
@@ -23,7 +23,6 @@ function AppRoutes() {
           <Motion.div key={location.pathname} {...pageTransition}>
             <Routes location={location}>
               <Route path="/" element={<HomePage />} />
-              <Route path="/hotels" element={<HotelsPage />} />
               <Route path="/feedback" element={<FeedbackPage />} />
               <Route path="/admin-login" element={<AdminLogin />} />
               <Route

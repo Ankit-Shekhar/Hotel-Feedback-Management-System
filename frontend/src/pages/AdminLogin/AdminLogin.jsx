@@ -51,7 +51,7 @@ function AdminLogin() {
                 Admin access
               </div>
               <h1 className="text-3xl font-semibold text-ivory">Sign in to dashboard</h1>
-              <p className="text-sm text-ivory/65">Use your admin credentials to access analytics and hotel feedback.</p>
+              <p className="text-sm text-ivory/65">Use your admin credentials to access Rendezvous analytics and feedback.</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">

@@ -4,8 +4,8 @@ const feedbackSchema = new Schema(
 	{
 		hotelId: {
 			type: Schema.Types.ObjectId,
-			ref: "Hotel",
-			required: true,
+			required: false,
+			default: null,
 			index: true
 		},
 		userName: {

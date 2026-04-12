@@ -50,6 +50,22 @@ h6 {
   min-height: 100vh;
 }
 
+@keyframes fastTealSpin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.force-fast-teal-spinner {
+  border-color: rgba(20, 184, 166, 0.24);
+  border-top-color: #14b8a6;
+  animation: fastTealSpin 0.35s linear infinite !important;
+}
+
 ::selection {
   background: #d4af37;
   color: #0b0b0b;

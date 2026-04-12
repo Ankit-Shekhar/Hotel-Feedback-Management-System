@@ -53,7 +53,6 @@ app.use(rateLimiter);
 
 
 //routes import
-import hotelRouter from './routes/hotel.routes.js'
 import feedbackRouter from './routes/feedback.routes.js'
 import adminRouter from './routes/admin.routes.js'
 import { errorMiddleware } from "./middlewares/errorMiddleware.js";
@@ -62,7 +61,6 @@ import { errorMiddleware } from "./middlewares/errorMiddleware.js";
 //as now we have separated routes and controllers, so we have to import the routes as Middlewares, and so we use "app.use()"
 //when the "users" endpoint will be hitted the control will be passed to "userRouter" and it will take us to "user.route.js"
 
-app.use("/api/hotels", hotelRouter)
 app.use("/api/feedback", feedbackRouter)
 app.use("/api/admin", adminRouter)
 app.get("/api/health", (req, res) => {

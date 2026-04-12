@@ -7,7 +7,7 @@ export const loginAdmin = async (credentials) => {
 
 export const getDashboardStats = async () => {
   const { data } = await api.get('/admin/dashboard')
-  return data?.data ?? { totalHotels: 0, totalFeedbacks: 0, averageRatings: {} }
+  return data?.data ?? { totalFeedbacks: 0, averageRatings: {} }
 }
 
 export const getDashboardSummary = getDashboardStats

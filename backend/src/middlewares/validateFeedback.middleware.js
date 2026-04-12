@@ -8,7 +8,7 @@ import { ApiError } from "../utils/ApiErrors.js";
 // - contact must exist
 export const validateFeedback = (req, res, next) => {
     try {
-        const { hotelId, userName, email, contactNumber, ratings, suggestion } = req.body;
+        const { userName, email, contactNumber, ratings, suggestion } = req.body;
 
         // Check if ratings object exists
         if (!ratings || typeof ratings !== "object") {
@@ -72,11 +72,6 @@ export const validateFeedback = (req, res, next) => {
         // Check userName exists
         if (!userName || !userName.trim()) {
             throw new ApiError(400, "User name is required");
-        }
-
-        // Check hotelId exists
-        if (!hotelId || !hotelId.trim()) {
-            throw new ApiError(400, "Hotel ID is required");
         }
 
         // All validations passed, move to next middleware
