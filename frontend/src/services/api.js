@@ -3,7 +3,7 @@ import { ADMIN_TOKEN_KEY, API_BASE_URL } from '../utils/constants'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 30000,
   withCredentials: true,
 })
 

@@ -90,7 +90,12 @@ function FeedbackPage() {
         },
       })
     } catch (err) {
-      const message = err?.response?.data?.message || 'Unable to submit feedback at the moment.'
+      const responseData = err?.response?.data
+      const message =
+        err?.response?.data?.message ||
+        (typeof responseData === 'string' ? responseData : '') ||
+        err?.message ||
+        'Unable to submit feedback at the moment.'
       setSubmitError(message)
       showToast({ title: 'Submission failed', message, variant: 'error' })
     } finally {
