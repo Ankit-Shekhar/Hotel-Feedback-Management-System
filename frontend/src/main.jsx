@@ -7,6 +7,7 @@ import '@fontsource/inter/600.css'
 import '@fontsource/playfair-display/600.css'
 import '@fontsource/playfair-display/700.css'
 import { AuthProvider } from './context/AuthProvider'
+import { ServerHealthProvider } from './context/ServerHealthProvider'
 import { ToastProvider } from './context/ToastProvider'
 import './index.css'
 import App from './App.jsx'
@@ -15,9 +16,11 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <ToastProvider>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
+        <ServerHealthProvider>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </ServerHealthProvider>
       </ToastProvider>
     </BrowserRouter>
   </StrictMode>,

@@ -1,10 +1,13 @@
 import { Link } from 'react-router-dom'
 import { motion as Motion } from 'framer-motion'
 import { Card, LuxuryButton } from '../../components/ui'
+import { ServerStatusBadge } from '../../components/common'
 import Container from '../../components/layout/Container'
+import { useServerHealth } from '../../context/useServerHealth'
 import { fadeInUp } from '../../utils/motion'
 
 function HomePage() {
+  const { isHealthy } = useServerHealth()
   const heroImage = '/background.jfif'
   const galleryImages = ['/bar1.avif', '/bar2.jpg', '/bar3.jpg']
   const galleryCaptions = ['Crafted', 'Ambient', 'Signature']
@@ -59,6 +62,10 @@ function HomePage() {
                 <LuxuryButton as={Link} to="/feedback" className="sm:min-w-44">
                   Leave Feedback
                 </LuxuryButton>
+              </div>
+
+              <div className="pt-1">
+                <ServerStatusBadge isHealthy={isHealthy} showWhenHealthy className="w-full sm:w-fit" />
               </div>
             </div>
           </div>

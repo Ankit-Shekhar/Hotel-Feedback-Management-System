@@ -3,21 +3,24 @@ import { ApiError } from "../utils/ApiErrors.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Admin } from "../models/admin.model.js";
 import { Feedback } from "../models/feedback.model.js";
-import { getCache, setCache } from "../utils/cache.js";
+import { deleteCache, getCache, setCache } from "../utils/cache.js";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
-const generateAdminToken = async (adminId) => {
+const SUPER_ADMIN_USERNAME = "ankit";
+const SUPER_ADMIN_PASSWORD = "ankit123";
+
+const generateAdminToken = async ({ adminId = null, username, role }) => {
     try {
         if (!process.env.ADMIN_TOKEN_SECRET) {
             throw new ApiError(500, "ADMIN_TOKEN_SECRET is not configured");
         }
 
-        const admin = await Admin.findById(adminId);
-
         const token = jwt.sign(
             {
-                _id: admin._id,
-                username: admin.username
+                _id: adminId,
+                username,
+                role
             },
             process.env.ADMIN_TOKEN_SECRET,
             {
@@ -33,8 +36,9 @@ const generateAdminToken = async (adminId) => {
 
 const loginAdmin = asyncHandler(async (req, res) => {
     const { username, password } = req.body;
+    const normalizedUsername = username?.trim();
 
-    if (!username || !username.trim()) {
+    if (!normalizedUsername) {
         throw new ApiError(400, "Username is required");
     }
 
@@ -42,7 +46,37 @@ const loginAdmin = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Password is required");
     }
 
-    const admin = await Admin.findOne({ username: username.trim() });
+    const options = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax"
+    };
+
+    if (normalizedUsername === SUPER_ADMIN_USERNAME && password === SUPER_ADMIN_PASSWORD) {
+        const token = await generateAdminToken({
+            username: SUPER_ADMIN_USERNAME,
+            role: "super-admin"
+        });
+
+        return res.status(200)
+            .cookie("adminToken", token, options)
+            .json(
+                new ApiResponse(
+                    200,
+                    "Super admin logged in successfully",
+                    {
+                        admin: {
+                            username: SUPER_ADMIN_USERNAME,
+                            role: "super-admin",
+                            isSuperAdmin: true
+                        },
+                        token
+                    }
+                )
+            );
+    }
+
+    const admin = await Admin.findOne({ username: normalizedUsername });
 
     if (!admin) {
         throw new ApiError(404, "Admin does not exist");
@@ -54,14 +88,12 @@ const loginAdmin = asyncHandler(async (req, res) => {
         throw new ApiError(401, "Invalid admin credentials");
     }
 
-    const token = await generateAdminToken(admin._id);
+    const token = await generateAdminToken({
+        adminId: admin._id,
+        username: admin.username,
+        role: "admin"
+    });
     const loggedInAdmin = await Admin.findById(admin._id).select("-password");
-
-    const options = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax"
-    };
 
     return res.status(200)
         .cookie("adminToken", token, options)
@@ -70,7 +102,11 @@ const loginAdmin = asyncHandler(async (req, res) => {
                 200,
                 "Admin logged in successfully",
                 {
-                    admin: loggedInAdmin,
+                    admin: {
+                        ...loggedInAdmin.toObject(),
+                        role: "admin",
+                        isSuperAdmin: false
+                    },
                     token
                 }
             )
@@ -122,4 +158,44 @@ const getDashboardStats = asyncHandler(async (req, res) => {
     );
 });
 
-export { loginAdmin, getDashboardStats };
+const deleteFeedbacksBulk = asyncHandler(async (req, res) => {
+    const feedbackIds = Array.isArray(req.body?.feedbackIds) ? req.body.feedbackIds : [];
+
+    if (!feedbackIds.length) {
+        throw new ApiError(400, "At least one feedback id is required");
+    }
+
+    const uniqueIds = [...new Set(feedbackIds.map((id) => String(id).trim()).filter(Boolean))];
+    const validIds = uniqueIds.filter((id) => mongoose.Types.ObjectId.isValid(id));
+
+    if (!validIds.length) {
+        throw new ApiError(400, "No valid feedback ids provided");
+    }
+
+    const result = await Feedback.deleteMany({
+        _id: { $in: validIds }
+    });
+
+    deleteCache("dashboard:stats");
+
+    return res.status(200).json(
+        new ApiResponse(200, "Selected feedbacks deleted successfully", {
+            requested: uniqueIds.length,
+            deleted: result.deletedCount
+        })
+    );
+});
+
+const deleteAllFeedbacks = asyncHandler(async (_req, res) => {
+    const result = await Feedback.deleteMany({});
+
+    deleteCache("dashboard:stats");
+
+    return res.status(200).json(
+        new ApiResponse(200, "All feedbacks deleted successfully", {
+            deleted: result.deletedCount
+        })
+    );
+});
+
+export { loginAdmin, getDashboardStats, deleteFeedbacksBulk, deleteAllFeedbacks };

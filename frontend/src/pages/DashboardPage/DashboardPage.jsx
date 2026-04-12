@@ -1,47 +1,55 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { motion as Motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { Card } from '../../components/ui'
 import { DashboardChart, FetchingNotice, SkeletonBlock } from '../../components/common'
 import { Sidebar, Container } from '../../components/layout'
-import { getDashboardStats, getRecentFeedbacks } from '../../services'
+import { useAuth } from '../../context/useAuth'
+import { useToast } from '../../context/useToast'
+import { deleteAllFeedbacks, deleteFeedbacksBulk, getDashboardStats, getRecentFeedbacks } from '../../services'
 import { fadeInUp, hoverLift } from '../../utils/motion'
 
 function DashboardPage() {
+  const { isSuperAdmin } = useAuth()
+  const { showToast } = useToast()
   const [stats, setStats] = useState(null)
   const [recentFeedbacks, setRecentFeedbacks] = useState([])
+  const [selectedFeedbackIds, setSelectedFeedbackIds] = useState([])
   const [loading, setLoading] = useState(true)
+  const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState('')
+
+  const loadDashboard = useCallback(async () => {
+    setLoading(true)
+
+    const [statsResult, recentResult] = await Promise.all([
+      getDashboardStats(),
+      getRecentFeedbacks(10),
+    ])
+
+    setStats(statsResult)
+    setRecentFeedbacks(recentResult)
+    setError('')
+    setLoading(false)
+  }, [])
 
   useEffect(() => {
     let active = true
     let retryTimeoutId
 
-    const loadDashboard = async () => {
+    const loadDashboardWithRetry = async () => {
       try {
-        setLoading(true)
-
-        const [statsResult, recentResult] = await Promise.all([
-          getDashboardStats(),
-          getRecentFeedbacks(10),
-        ])
-
-        if (active) {
-          setStats(statsResult)
-          setRecentFeedbacks(recentResult)
-          setError('')
-          setLoading(false)
-        }
+        await loadDashboard()
       } catch (err) {
         if (active) {
           const message = err?.response?.data?.message || 'Unable to load dashboard data.'
           setError(message)
-          retryTimeoutId = window.setTimeout(loadDashboard, 4500)
+          retryTimeoutId = window.setTimeout(loadDashboardWithRetry, 4500)
         }
       }
     }
 
-    loadDashboard()
+    loadDashboardWithRetry()
 
     return () => {
       active = false
@@ -49,7 +57,83 @@ function DashboardPage() {
         window.clearTimeout(retryTimeoutId)
       }
     }
-  }, [])
+  }, [loadDashboard])
+
+  useEffect(() => {
+    setSelectedFeedbackIds((currentIds) =>
+      currentIds.filter((id) => recentFeedbacks.some((feedback) => feedback._id === id)),
+    )
+  }, [recentFeedbacks])
+
+  const allRecentSelected = recentFeedbacks.length > 0 && selectedFeedbackIds.length === recentFeedbacks.length
+
+  const toggleFeedbackSelection = (feedbackId) => {
+    setSelectedFeedbackIds((currentIds) => {
+      if (currentIds.includes(feedbackId)) {
+        return currentIds.filter((id) => id !== feedbackId)
+      }
+
+      return [...currentIds, feedbackId]
+    })
+  }
+
+  const toggleSelectAllRecent = () => {
+    if (allRecentSelected) {
+      setSelectedFeedbackIds([])
+      return
+    }
+
+    setSelectedFeedbackIds(recentFeedbacks.map((feedback) => feedback._id))
+  }
+
+  const handleDeleteSelected = async () => {
+    if (!selectedFeedbackIds.length) {
+      showToast({
+        title: 'No selection',
+        message: 'Select at least one feedback to delete.',
+        variant: 'error',
+      })
+      return
+    }
+
+    setDeleting(true)
+
+    try {
+      const result = await deleteFeedbacksBulk(selectedFeedbackIds)
+      setSelectedFeedbackIds([])
+      await loadDashboard()
+      showToast({
+        title: 'Feedback removed',
+        message: `${result?.deleted || 0} feedback(s) permanently deleted.`,
+        variant: 'success',
+      })
+    } catch (err) {
+      const message = err?.response?.data?.message || 'Unable to delete selected feedbacks.'
+      showToast({ title: 'Delete failed', message, variant: 'error' })
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  const handleDeleteAll = async () => {
+    setDeleting(true)
+
+    try {
+      const result = await deleteAllFeedbacks()
+      setSelectedFeedbackIds([])
+      await loadDashboard()
+      showToast({
+        title: 'All feedback removed',
+        message: `${result?.deleted || 0} feedback(s) permanently deleted.`,
+        variant: 'success',
+      })
+    } catch (err) {
+      const message = err?.response?.data?.message || 'Unable to delete all feedbacks.'
+      showToast({ title: 'Delete failed', message, variant: 'error' })
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   const chartData = useMemo(() => {
     if (!stats?.averageRatings) {
@@ -120,9 +204,40 @@ function DashboardPage() {
               <DashboardChart title="Average ratings by category" data={chartData} xKey="label" yKey="value" />
 
               <section className="space-y-4">
-                <div>
-                  <h2 className="text-2xl font-semibold text-ivory">Recent feedback</h2>
-                  <p className="text-sm text-ivory/60">Latest guest submissions across Rendezvous.</p>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <h2 className="text-2xl font-semibold text-ivory">Recent feedback</h2>
+                    <p className="text-sm text-ivory/60">Latest guest submissions across Rendezvous.</p>
+                  </div>
+
+                  {isSuperAdmin && recentFeedbacks.length > 0 ? (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={toggleSelectAllRecent}
+                        className="rounded-full border border-white/20 px-3 py-1.5 text-xs font-semibold text-ivory/85 transition hover:border-gold/50 hover:text-goldSoft"
+                        disabled={deleting}
+                      >
+                        {allRecentSelected ? 'Clear Selection' : 'Select All'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleDeleteSelected}
+                        className="rounded-full border border-red-400/35 px-3 py-1.5 text-xs font-semibold text-red-200 transition hover:border-red-400 hover:bg-red-500/15"
+                        disabled={deleting || !selectedFeedbackIds.length}
+                      >
+                        {deleting ? 'Deleting...' : `Delete Selected (${selectedFeedbackIds.length})`}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleDeleteAll}
+                        className="rounded-full border border-red-500/45 px-3 py-1.5 text-xs font-semibold text-red-100 transition hover:border-red-500 hover:bg-red-600/20"
+                        disabled={deleting}
+                      >
+                        {deleting ? 'Deleting...' : 'Delete All'}
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
 
                 <div className="grid gap-4">
@@ -144,6 +259,20 @@ function DashboardPage() {
                   ) : (
                     recentFeedbacks.map((feedback) => (
                       <Card key={feedback._id} className="border-white/10 p-5">
+                        {isSuperAdmin ? (
+                          <div className="mb-3 flex justify-end">
+                            <label className="inline-flex items-center gap-2 text-xs text-ivory/70">
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4 rounded border-white/20 bg-transparent accent-red-500"
+                                checked={selectedFeedbackIds.includes(feedback._id)}
+                                onChange={() => toggleFeedbackSelection(feedback._id)}
+                                disabled={deleting}
+                              />
+                              Select
+                            </label>
+                          </div>
+                        ) : null}
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                           <div className="space-y-2">
                             <div>

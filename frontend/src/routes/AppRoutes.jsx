@@ -1,6 +1,6 @@
 import { AnimatePresence, motion as Motion } from 'framer-motion'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
-import { RouteLoader } from '../components/common'
+import { GlobalServerStatus, RouteLoader } from '../components/common'
 import { Footer, Navbar } from '../components/layout'
 import { useAuth } from '../context/useAuth'
 import { AdminLogin, DashboardPage, FeedbackPage, HomePage, NotFound } from '../pages'
@@ -18,6 +18,7 @@ function AppRoutes() {
     <div className="flex min-h-screen flex-col">
       <Navbar />
       <RouteLoader isVisible={false} />
+      <GlobalServerStatus />
       <div className="flex-1">
         <AnimatePresence mode="wait">
           <Motion.div key={location.pathname} {...pageTransition}>

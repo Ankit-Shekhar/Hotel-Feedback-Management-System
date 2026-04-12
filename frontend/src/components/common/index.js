@@ -4,4 +4,6 @@ export { default as Modal } from './Modal'
 export { default as DashboardChart } from './DashboardChart'
 export { default as SkeletonBlock } from './SkeletonBlock'
 export { default as RouteLoader } from './RouteLoader'
+export { default as ServerStatusBadge } from './ServerStatusBadge'
+export { default as GlobalServerStatus } from './GlobalServerStatus'
 
