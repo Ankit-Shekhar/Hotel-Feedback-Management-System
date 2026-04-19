@@ -207,7 +207,7 @@ function DashboardPage() {
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <h2 className="text-2xl font-semibold text-ivory">Recent feedback</h2>
-                    <p className="text-sm text-ivory/60">Latest guest submissions across Rendezvous.</p>
+                    <p className="text-sm text-ivory/60">Latest guest submissions across rendezvous.</p>
                   </div>
 
                   {isSuperAdmin && recentFeedbacks.length > 0 ? (
@@ -277,7 +277,7 @@ function DashboardPage() {
                           <div className="space-y-2">
                             <div>
                               <h3 className="text-lg font-semibold text-ivory">{feedback.userName}</h3>
-                              <p className="text-sm text-ivory/60">rendezvous</p>
+                              <p className="text-sm text-ivory/60">Rendezvous</p>
                               <p className="text-sm text-ivory/60">Email: {feedback.email || 'Not provided'}</p>
                               <p className="text-sm text-ivory/60">Contact: {feedback.contactNumber || feedback.contact || 'Not provided'}</p>
                             </div>

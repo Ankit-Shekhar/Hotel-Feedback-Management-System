@@ -26,7 +26,14 @@ function DashboardChart({
           <BarChart data={data}>
             <CartesianGrid stroke="rgba(248,246,241,0.08)" vertical={false} />
             <XAxis dataKey={xKey} stroke="rgba(248,246,241,0.45)" tickLine={false} axisLine={false} />
-            <YAxis stroke="rgba(248,246,241,0.45)" tickLine={false} axisLine={false} />
+            <YAxis
+              stroke="rgba(248,246,241,0.45)"
+              tickLine={false}
+              axisLine={false}
+              domain={[0, 5]}
+              ticks={[0, 1, 2, 3, 4, 5]}
+              allowDecimals={false}
+            />
             <Tooltip
               contentStyle={{
                 background: '#1C1C1C',

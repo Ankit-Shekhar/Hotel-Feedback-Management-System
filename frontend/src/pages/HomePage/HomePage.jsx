@@ -5,11 +5,14 @@ import { ServerStatusBadge } from '../../components/common'
 import Container from '../../components/layout/Container'
 import { useServerHealth } from '../../context/useServerHealth'
 import { fadeInUp } from '../../utils/motion'
+import clgBar1 from '../../../dummyImages/clgBar1.png'
+import clgBar2 from '../../../dummyImages/clgBar2.png'
+import clgBar3 from '../../../dummyImages/clgBar3.png'
 
 function HomePage() {
   const { isHealthy } = useServerHealth()
   const heroImage = '/background.jfif'
-  const galleryImages = ['/bar1.avif', '/bar2.jpg', '/bar3.jpg']
+  const galleryImages = [clgBar1, clgBar3, clgBar2]
   const galleryCaptions = ['Crafted', 'Ambient', 'Signature']
 
   return (

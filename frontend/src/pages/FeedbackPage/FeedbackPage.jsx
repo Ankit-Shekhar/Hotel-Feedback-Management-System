@@ -112,7 +112,7 @@ function FeedbackPage() {
           </div>
           <h1 className="text-4xl font-semibold sm:text-5xl">Tell us about your Rendezvous evening.</h1>
           <p className="max-w-3xl text-base leading-7 text-ivory/70">
-            Rate your experience and leave a note to help us make every night better.
+            Rate your experience and leave a note to help us make every moment better.
           </p>
         </Motion.section>
 
@@ -120,10 +120,8 @@ function FeedbackPage() {
           <Motion.aside {...hoverLift} className="space-y-4 rounded-[2rem] border border-white/10 bg-secondary/88 p-6 backdrop-blur-[1px]">
             <h2 className="text-2xl font-semibold text-ivory">Important notes</h2>
             <div className="space-y-3 text-sm leading-6 text-ivory/70">
-              <p>Share your most recent Rendezvous experience.</p>
-              <p>Providing clear ratings helps us improve service quality quickly.</p>
               <p>All four rating categories are required: overall, food, service, and ambience.</p>
-              <p>Here, 1 star = poor and 5 star = excellent.</p>
+              <p>Here, 1 star = Poor and 5 star = Excellent.</p>
             </div>
 
             <Card className="overflow-hidden border border-white/10 bg-primary/40 p-3">
@@ -133,7 +131,7 @@ function FeedbackPage() {
                 className="h-44 w-full rounded-2xl object-cover"
               />
               <div className="mt-3 text-sm text-ivory/75">
-                <p className="font-semibold text-ivory">rendezvous</p>
+                <p className="font-semibold text-ivory">Rendezvous</p>
               </div>
             </Card>
 
@@ -190,7 +188,7 @@ function FeedbackPage() {
               label="Suggestion"
               value={form.suggestion}
               onChange={(event) => updateField('suggestion', event.target.value)}
-              placeholder="Share your suggestion or compliment..."
+              placeholder="Share your suggestion..."
               maxLength={500}
               required
             />
